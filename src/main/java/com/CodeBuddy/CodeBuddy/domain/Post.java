@@ -14,13 +14,12 @@ public class Post {
     private Long id;
 
     private String title;
-
     private String Description;
 
-    private Long userId;
+    @ManyToOne
+    private Student student;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "post_id")
     private List<Comment> comments = new ArrayList<>();
 
 }

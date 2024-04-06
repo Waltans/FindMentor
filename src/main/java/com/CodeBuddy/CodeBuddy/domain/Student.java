@@ -6,11 +6,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 @Entity
-@Table(name = "User")
+@Table(name = "Student")
 @Data
-public class User implements UserDetails {
+public class Student implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +21,9 @@ public class User implements UserDetails {
     private String password;
     private String email;
     private String telegram;
+
+    @OneToMany(mappedBy = "student")
+    private List<Post> posts;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

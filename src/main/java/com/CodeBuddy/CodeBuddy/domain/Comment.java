@@ -11,9 +11,9 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String content;
-    private Long userId;
+    @OneToOne
+    private Student student;
 
     @ManyToOne
-    @JoinColumn(name = "post_id")
     private Post post;
 }
