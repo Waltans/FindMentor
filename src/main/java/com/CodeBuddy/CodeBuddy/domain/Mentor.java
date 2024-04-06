@@ -2,16 +2,16 @@ package com.CodeBuddy.CodeBuddy.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "Mentor")
-public class Mentor implements UserDetails {
+public class Mentor {
     @Id
     @Column(unique = true,nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,34 +38,8 @@ public class Mentor implements UserDetails {
     @ElementCollection
     private Set<String> keyword;
 
+    @OneToMany(mappedBy = "mentor")
+    private List<Request> requests = new ArrayList<>();
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
 
-    @Override
-    public String getUsername() {
-        return null;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return false;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return false;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return false;
-    }
 }

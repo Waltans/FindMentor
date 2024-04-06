@@ -3,25 +3,22 @@ package com.CodeBuddy.CodeBuddy.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
-
-@Entity
 @Data
-public class Comment {
-
+@Entity
+public class Request {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String content;
+    private String description;
 
-    private Date date = new Date();
+    private RequestState requestState;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
     private Student student;
 
     @ManyToOne
-    @JoinColumn(name = "comment_id")
-    private Post post;
+    @JoinColumn(name = "mentor_id")
+    private Mentor mentor;
 }
