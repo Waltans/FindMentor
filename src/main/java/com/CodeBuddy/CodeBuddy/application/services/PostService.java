@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,5 +29,21 @@ public class PostService {
         post.setLocalDateTime(LocalDateTime.now());
         postRepository.save(post);
         log.info("Создан новый пост с id ={}, учеником с id ={}", post.getId(), post.getStudent().getId());
+    }
+
+    /**
+     * Метод для поиска поста по id
+     *
+     * @param id
+     * @return
+     */
+    public Optional<Post> getPostById(Long id) {
+        Optional<Post> post = postRepository.findById(id);
+        if (post.isPresent()) {
+            log.info("Пост с id ={} найден ", id);
+            return post;
+        }
+        log.info("Пост с id={} не найден", id);
+        return post;
     }
 }

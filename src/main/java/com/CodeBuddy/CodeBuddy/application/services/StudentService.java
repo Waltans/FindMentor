@@ -2,6 +2,7 @@ package com.CodeBuddy.CodeBuddy.application.services;
 
 
 import com.CodeBuddy.CodeBuddy.application.repository.StudentRepository;
+import com.CodeBuddy.CodeBuddy.domain.Comment;
 import com.CodeBuddy.CodeBuddy.domain.Post;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -20,13 +22,15 @@ public class StudentService {
     public final MentorService mentorService;
     public final RequestService requestService;
     public final PostService postService;
+    public final CommentService commentService;
 
     public StudentService(StudentRepository studentRepository, @Lazy MentorService mentorService,
-                          RequestService requestService, PostService postService) {
+                          RequestService requestService, PostService postService, CommentService commentService) {
         this.studentRepository = studentRepository;
         this.mentorService = mentorService;
         this.requestService = requestService;
         this.postService = postService;
+        this.commentService = commentService;
     }
 
     /**
@@ -122,6 +126,23 @@ public class StudentService {
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
         }
         log.info("Ошибка создания поста");
+    }
+
+    public void sendComment(Long studentId, Long postId, String content) {
+        Optional<Student> student = getStudentById(studentId);
+        Optional<Post> post = postService.getPostById(postId);
+        if (student.isPresent() && post.isPresent()) {
+            Comment comment = new Comment();
+            comment.setStudent(student.get());
+            comment.setDate(new Date());
+            comment.setContent(content);
+            comment.setPost(post.get());
+            student.get().getComments().add(comment);
+            studentRepository.save(student.get());
+            commentService.createComment(comment);
+            log.info("Комментарий передан на создание");
+        }
+        log.info("Не удалось создать комментарий");
     }
 
 }

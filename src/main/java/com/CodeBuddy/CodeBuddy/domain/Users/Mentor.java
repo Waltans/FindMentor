@@ -49,6 +49,6 @@ public class Mentor {
             joinColumns = @JoinColumn(name = "mentor_id"),
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
-    private List<Student> acceptedStudent;
+    private List<Student> acceptedStudent = new ArrayList<>();
 
 }

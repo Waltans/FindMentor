@@ -7,6 +7,8 @@ import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -93,7 +95,7 @@ public class MentorService {
      * @param mentorId
      */
     //TODO - 1
-    public void ChangeStatusRequest(Long requestId, Long mentorId, Long studentId, RequestState requestState) {
+    public void changeStatusRequest(Long requestId, Long mentorId, Long studentId, RequestState requestState) {
         Optional<Request> request = requestService.getRequestById(requestId);
         Optional<Mentor> mentor = getMentorById(mentorId);
         Optional<Student> student = studentService.getStudentById(studentId);
@@ -104,9 +106,22 @@ public class MentorService {
                 if (requestState.equals(RequestState.ACCEPTED)) {
                     mentor.get().getAcceptedStudent().add(student.get());
                     student.get().getAcceptedMentor().add(mentor.get());
+                    request.get().setMentor(mentor.get());
+                    request.get().setStudent(student.get());
                 }
             }
             log.info("Изменение статуса запроса с id={} невозможно", requestId);
         }
+    }
+
+    /**
+     * Метод для получения всех менторов
+     *
+     * @param pageable
+     * @return
+     */
+    public Page<Mentor> getAllMentors(Pageable pageable) {
+        log.info("Получены все менторы с пагинацией ");
+        return mentorRepository.findAll(pageable);
     }
 }

@@ -16,7 +16,7 @@ public class Comment {
 
     private String content;
 
-    private Date date = new Date();
+    private Date date;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
