@@ -1,8 +1,10 @@
 package com.CodeBuddy.CodeBuddy.domain;
 
+import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,11 @@ public class Post {
     private String description;
 
     private Long countOfLikes;
+
+    /**
+     * Дата создания поста
+     */
+    private LocalDateTime localDateTime;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();

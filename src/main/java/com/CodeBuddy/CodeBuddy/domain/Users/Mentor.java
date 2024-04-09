@@ -1,10 +1,10 @@
-package com.CodeBuddy.CodeBuddy.domain;
+package com.CodeBuddy.CodeBuddy.domain.Users;
 
+import com.CodeBuddy.CodeBuddy.domain.Request;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 @Table(name = "Mentor")
 public class Mentor {
     @Id
-    @Column(unique = true,nullable = false)
+    @Column(unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -38,8 +38,17 @@ public class Mentor {
     @ElementCollection
     private Set<String> keyword;
 
-    @OneToMany(mappedBy = "mentor")
+    @OneToMany(mappedBy = "mentor",fetch = FetchType.LAZY)
     private List<Request> requests = new ArrayList<>();
-
+    /**
+     * Список учеников, у которых принята заявка ментором
+     */
+    @ManyToMany()
+    @JoinTable(
+            name = "student_mentor",
+            joinColumns = @JoinColumn(name = "mentor_id"),
+            inverseJoinColumns = @JoinColumn(name = "student_id")
+    )
+    private List<Student> acceptedStudent;
 
 }

@@ -1,5 +1,7 @@
 package com.CodeBuddy.CodeBuddy.domain;
 
+import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
+import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import jakarta.persistence.*;
 import lombok.Data;
 

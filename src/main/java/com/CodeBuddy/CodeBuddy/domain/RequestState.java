@@ -1,5 +1,22 @@
 package com.CodeBuddy.CodeBuddy.domain;
 
+import jakarta.persistence.Enumerated;
+
 public enum RequestState {
-    SEND, CANCELED, ACCEPTED, REJECTED
+    /**
+     * Отправлен учеником
+     */
+    SEND,
+    /**
+     * Отклонен учеником
+     */
+    CANCELED,
+    /**
+     * Принят ментором
+     */
+    ACCEPTED,
+    /**
+     * Отклонен ментором
+     */
+    REJECTED
 }
