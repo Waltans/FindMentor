@@ -70,8 +70,8 @@ public class StudentService {
         student.ifPresent(value -> {
             value.setEmail(newEmail);
             studentRepository.save(value);
+            log.info("Почта пользователя с id={} изменилась ", studentId);
         });
-        log.info("Почта пользователя с id={} изменилась ", studentId);
     }
 
     /**
@@ -85,8 +85,8 @@ public class StudentService {
         student.ifPresent(value -> {
             value.setTelegram(newTelegram);
             studentRepository.save(value);
+            log.info("Телеграм ученика с id={} изменился ", studentId);
         });
-        log.info("Телеграм ученика с id={} изменилась ", studentId);
     }
 
     /**
@@ -107,7 +107,9 @@ public class StudentService {
             requestService.saveRequest(request);
             log.info("Запрос учеником c id={} и ментором c id={} был отправлен на сохранение", studentId, mentorId);
         }
-        log.info("Создать вопрос не удалось");
+        else {
+            log.info("Создать вопрос не удалось");
+        }
     }
 
     /**
@@ -125,7 +127,9 @@ public class StudentService {
             postService.createPost(post);
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
         }
-        log.info("Ошибка создания поста");
+        else {
+            log.info("Ошибка создания поста");
+        }
     }
 
     public void sendComment(Long studentId, Long postId, String content) {
@@ -142,7 +146,9 @@ public class StudentService {
             commentService.createComment(comment);
             log.info("Комментарий передан на создание");
         }
-        log.info("Не удалось создать комментарий");
+        else {
+            log.info("Не удалось создать комментарий");
+        }
     }
 
 }
