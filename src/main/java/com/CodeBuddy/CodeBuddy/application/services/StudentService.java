@@ -5,6 +5,7 @@ import com.CodeBuddy.CodeBuddy.application.repository.StudentRepository;
 import com.CodeBuddy.CodeBuddy.domain.Comment;
 import com.CodeBuddy.CodeBuddy.domain.Post;
 import com.CodeBuddy.CodeBuddy.domain.Request;
+import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import lombok.extern.slf4j.Slf4j;
@@ -101,8 +102,11 @@ public class StudentService {
         Optional<Student> student = getStudentById(studentId);
         if (student.isPresent() && mentor.isPresent()) {
             Request request = new Request();
+            request.setRequestState(RequestState.SEND);
             request.setStudent(student.get());
             request.setMentor(mentor.get());
+            student.get().getRequests().add(request);
+            mentor.get().getRequests().add(request);
             request.setDescription(description);
             requestService.saveRequest(request);
             log.info("Запрос учеником c id={} и ментором c id={} был отправлен на сохранение", studentId, mentorId);
@@ -142,13 +146,17 @@ public class StudentService {
             comment.setContent(content);
             comment.setPost(post.get());
             student.get().getComments().add(comment);
-            studentRepository.save(student.get());
             commentService.createComment(comment);
             log.info("Комментарий передан на создание");
         }
         else {
             log.info("Не удалось создать комментарий");
         }
+    }
+
+    public Mentor getMentorDate(Long mentorId, Long studentId){
+        //TODO
+        return null;
     }
 
 }

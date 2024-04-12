@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "User")
+@Table(name = "Student")
 @Data
 public class Student {
 

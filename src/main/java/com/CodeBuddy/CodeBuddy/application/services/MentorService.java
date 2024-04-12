@@ -124,4 +124,25 @@ public class MentorService {
         log.info("Получены все менторы с пагинацией ");
         return mentorRepository.findAll(pageable);
     }
+
+
+    public void answerToRequest(Long requestId, RequestState requestState){
+        Optional<Request> optionalRequest = requestService.getRequestById(requestId);
+        if (optionalRequest.isPresent()){
+            Request request = optionalRequest.get();
+            request.setRequestState(requestState);
+            if(request.getRequestState().equals(RequestState.ACCEPTED)){
+                Mentor mentor = request.getMentor();
+                Student student = request.getStudent();
+                mentor.getAcceptedStudent().add(request.getStudent());
+                student.getAcceptedMentor().add(request.getMentor());
+            }
+            //TODO Проверить сохранение в лист запросов
+            requestService.saveRequest(request);
+            log.info("Статус запроса с id={} изменен на {}", requestId, requestState.name());
+        }
+        else {
+            log.info("Статус запроса с id={} не изменен", requestId);
+        }
+    }
 }
