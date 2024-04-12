@@ -8,10 +8,6 @@ public enum RequestState {
      */
     SEND,
     /**
-     * Отклонен учеником
-     */
-    CANCELED,
-    /**
      * Принят ментором
      */
     ACCEPTED,

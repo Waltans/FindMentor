@@ -41,7 +41,6 @@ public class RequestService {
      * @param request
      */
     public void saveRequest(Request request) {
-        request.setRequestState(RequestState.SEND);
         requestRepository.save(request);
         log.info("Запрос с id = {} был сохранен в базу данных", request.getId());
     }
