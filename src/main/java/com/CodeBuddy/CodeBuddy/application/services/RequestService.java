@@ -51,7 +51,6 @@ public class RequestService {
      * @param id
      * @return
      */
-
     public Optional<Request> getRequestById(Long id) {
         Optional<Request> request = requestRepository.findById(id);
         if (request.isPresent()) {

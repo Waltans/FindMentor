@@ -125,6 +125,14 @@ public class MentorService {
         return mentorRepository.findAll(pageable);
     }
 
+    //TODO метод для отправки всех ключевых слов
+
+    //TODO метод для добавления ключевых слов и удаления
+
+
+    //TODO метод для поиска по ключевым словам
+    // или имени или фамилии или имени и фамилии  ??
+
 
     public void answerToRequest(Long requestId, RequestState requestState){
         Optional<Request> optionalRequest = requestService.getRequestById(requestId);

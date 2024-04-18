@@ -48,16 +48,26 @@ public class TestController {
         return new ResponseEntity<>(student, HttpStatus.CREATED);
     }
 
+    @GetMapping("/request/{mentor}/{studentId}")
+    public Request createRequest(@PathVariable Long mentor, @PathVariable Long studentId) {
+        return studentService.createRequestForMentor(mentor,studentId,"description");
+    }
+
     @PutMapping("/{id}")
     public Request updateRequest(@PathVariable("id") Long requestId){
         Optional<Request> request = requestService.getRequestById(requestId);
-        request.get().setRequestState(RequestState.CANCELED);
+        request.get().setRequestState(RequestState.SEND);
         requestService.saveRequest(request.get());
         return request.get();
     }
+
+
     @GetMapping("/student/{id}")
-    public Student getStudent(@PathVariable("id") Long id){
-        return studentService.getStudentById(id).get();
+    public ResponseEntity<Student> getStudent(@PathVariable("id") Long id){
+        if (studentService.getStudentById(id).isPresent()){
+            return ResponseEntity.ok(studentService.getStudentById(id).get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/mentor/{id}")
