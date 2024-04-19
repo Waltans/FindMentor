@@ -38,7 +38,7 @@ public class Mentor {
     @ElementCollection
     private Set<String> keyword;
 
-    @OneToMany(mappedBy = "mentor",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "mentor", fetch = FetchType.LAZY)
     private List<Request> requests = new ArrayList<>();
     /**
      * Список учеников, у которых принята заявка ментором
@@ -50,5 +50,10 @@ public class Mentor {
             inverseJoinColumns = @JoinColumn(name = "student_id")
     )
     private List<Student> acceptedStudent = new ArrayList<>();
+
+    /**
+     * Ссылка на фотографию
+     */
+    private String urlPhoto;
 
 }

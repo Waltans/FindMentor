@@ -33,6 +33,8 @@ public class Student {
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     private List<Request> requests = new ArrayList<>();
 
+    private String description;
+
     /**
      * Список менторов, которые приняли заявку у ученика
      */

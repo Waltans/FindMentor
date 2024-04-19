@@ -4,7 +4,7 @@ import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Data
@@ -16,7 +16,7 @@ public class Comment {
 
     private String content;
 
-    private Date date;
+    private LocalDate date;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
