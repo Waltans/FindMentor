@@ -12,8 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
+import java.util.TimeZone;
+
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 @Slf4j
@@ -68,13 +73,12 @@ public class StudentService {
      */
     public void updateInformation(Long studentId, String newEmail, String newTelegram) {
         // TODO обновление фотографии и описания, логин и пароль
-        Optional<Student> student = getStudentById(studentId);
-        student.ifPresentOrElse(value -> {
-            value.setEmail(newEmail);
-            value.setTelegram(newTelegram);
-            studentRepository.save(value);
+        getStudentById(studentId).ifPresentOrElse(student -> {
+            student.setEmail(newEmail);
+            student.setTelegram(newTelegram);
+            studentRepository.save(student);
             log.info("Данные пользователя с id={} изменилась ", studentId);
-        }, ()-> log.info("Изменить данные не получилось "));
+        }, () -> log.info("Изменить данные не получилось "));
     }
 
     /**
@@ -130,7 +134,7 @@ public class StudentService {
         if (student.isPresent() && post.isPresent()) {
             Comment comment = new Comment();
             comment.setStudent(student.get());
-            comment.setDate(new Date());
+            comment.setDate(LocalDate.now());
             comment.setContent(content);
             comment.setPost(post.get());
             student.get().getComments().add(comment);
@@ -141,10 +145,10 @@ public class StudentService {
         }
     }
 
-    public Mentor getMentorData(Long mentorId, Long studentId) {
-        //TODO
-        return null;
-    }
+//    public Mentor getMentorData(Long mentorId, Long studentId) {
+//        //TODO
+//        return null;
+//    }
 
     /**
      * Метод для отмены запроса
@@ -156,7 +160,7 @@ public class StudentService {
         requestService.getRequestById(requestId).ifPresentOrElse(request -> {
             request.getStudent().getId().equals(studentId);
             requestService.deleteRequest(requestId);
-            log.info("Запрос с id={}, удален учеником с id={}",requestId,studentId);
+            log.info("Запрос с id={}, удален учеником с id={}", requestId, studentId);
         }, () -> log.info("Не удалось отменить запрос с id={} ученику с id={}", requestId, studentId));
     }
 

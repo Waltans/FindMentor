@@ -125,7 +125,7 @@ public class MentorService {
         return mentorRepository.findAll(pageable);
     }
 
-    //TODO метод для отправки всех ключевых слов
+    //TODO метод для отправки всех ключевых слов Леша
 
     //TODO метод для добавления ключевых слов и удаления
 
