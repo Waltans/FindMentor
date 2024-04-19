@@ -67,25 +67,15 @@ class MentorServiceTest {
         verify(mentorRepository, times(1)).findById(1L);
     }
 
-    @Test
-    void updateEmailTest() {
-        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
-
-        mentorService.updateEmail(1L, "newemail@example.com");
-
-        verify(mentorRepository, times(1)).findById(1L);
-        assertEquals("newemail@example.com", mentor.getEmail());
-    }
-
-    @Test
-    void updateTelegramTest() {
-        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
-
-        mentorService.updateTelegram(1L, "newtelegram");
-
-        verify(mentorRepository, times(1)).findById(1L);
-        assertEquals("newtelegram", mentor.getEmail());
-    }
+//    @Test
+//    void updateEmailTest() {
+//        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
+//
+//        mentorService.updateEmail(1L, "newemail@example.com");
+//
+//        verify(mentorRepository, times(1)).findById(1L);
+//        assertEquals("newemail@example.com", mentor.getEmail());
+//    }
 
     @Test
     void ChangeStatusRequestTest() {

@@ -12,13 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.TimeZone;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 
 @Service
 @Slf4j
@@ -29,14 +27,16 @@ public class StudentService {
     public final RequestService requestService;
     public final PostService postService;
     public final CommentService commentService;
+    public final GoogleDriveService googleDriveService;
 
     public StudentService(StudentRepository studentRepository, @Lazy MentorService mentorService,
-                          RequestService requestService, PostService postService, CommentService commentService) {
+                          RequestService requestService, PostService postService, CommentService commentService, GoogleDriveService googleDriveService) {
         this.studentRepository = studentRepository;
         this.mentorService = mentorService;
         this.requestService = requestService;
         this.postService = postService;
         this.commentService = commentService;
+        this.googleDriveService = googleDriveService;
     }
 
     /**
@@ -71,11 +71,12 @@ public class StudentService {
      * @param studentId
      * @param newEmail
      */
-    public void updateInformation(Long studentId, String newEmail, String newTelegram) {
-        // TODO обновление фотографии и описания, логин и пароль
+    public void updateInformation(Long studentId, String newEmail, String newTelegram, String description) {
+        // TODO логин и пароль
         getStudentById(studentId).ifPresentOrElse(student -> {
             student.setEmail(newEmail);
             student.setTelegram(newTelegram);
+            student.setDescription(description);
             studentRepository.save(student);
             log.info("Данные пользователя с id={} изменилась ", studentId);
         }, () -> log.info("Изменить данные не получилось "));
@@ -110,22 +111,45 @@ public class StudentService {
 
     /**
      * Метод для создания поста для общего просмотра
+     * МАКСИМУМ 3 ФОТОГРАФИИ
      *
      * @param studentId
      * @param description
      */
-    public void createPost(Long studentId, String description) {
-        //TODO фотографии для поста до 3х штук
+    public void createPost(Long studentId, String description, List<File> files) {
         Optional<Student> student = getStudentById(studentId);
         if (student.isPresent()) {
             Post post = new Post();
             post.setDescription(description);
             post.setStudent(student.get());
+            post.setUrlPhoto(addPhotoToPost(files));
             postService.createPost(post);
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
         } else {
             log.info("Ошибка создания поста");
         }
+    }
+
+    /**
+     * Добавление фото к посту
+     *
+     * @param files - список файлов
+     * @return список ссылок
+     */
+    public List<String> addPhotoToPost(List<File> files) {
+        List<String> urls = new ArrayList<>(3);
+        for (File file : files) {
+            urls.add(googleDriveService.uploadImageToDrive(file));
+        }
+        return urls;
+    }
+
+    public void UpdatePhotoStudent(File file, Long studentId) {
+        getStudentById(studentId).ifPresentOrElse(student -> {
+            student.setPhotoUrl(googleDriveService.uploadImageToDrive(file));
+            log.info("Пользователь с id={} сменил фотографию", studentId);
+            studentRepository.save(student);
+        }, () -> log.info("Не удалось обновить фотографию у пользователя с id = {}", studentId));
     }
 
     public void sendComment(Long studentId, Long postId, String content) {
@@ -165,5 +189,4 @@ public class StudentService {
     }
 
     //TODO лайки постов
-
 }

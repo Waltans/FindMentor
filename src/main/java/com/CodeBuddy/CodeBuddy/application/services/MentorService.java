@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.Optional;
 
 
@@ -21,12 +22,14 @@ public class MentorService {
     private final MentorRepository mentorRepository;
     private final RequestService requestService;
     private final StudentService studentService;
+    private final GoogleDriveService googleDriveService;
 
     @Autowired
-    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService) {
+    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService, GoogleDriveService googleDriveService) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
         this.studentService = studentService;
+        this.googleDriveService = googleDriveService;
     }
 
 
@@ -64,28 +67,28 @@ public class MentorService {
      * @param mentorId
      * @param newEmail
      */
-    public void updateEmail(Long mentorId, String newEmail) {
+    public void updateEmail(Long mentorId, String newEmail, String newTelegram) {
         Optional<Mentor> mentor = getMentorById(mentorId);
         mentor.ifPresent(value -> {
             value.setEmail(newEmail);
+            value.setEmail(newTelegram);
             mentorRepository.save(value);
-            log.info("Пользователь с id ={} обновил почту", mentorId);
+            log.info("Пользователь с id ={} обновил почту и телеграмм", mentorId);
         });
     }
 
     /**
-     * Обновить телеграм ментора
+     * Метод сохраняет фотографии ментора
      *
      * @param mentorId
-     * @param newTelegram
+     * @param file
      */
-    public void updateTelegram(Long mentorId, String newTelegram) {
-        Optional<Mentor> mentor = getMentorById(mentorId);
-        mentor.ifPresent(value -> {
-            value.setEmail(newTelegram);
-            mentorRepository.save(value);
-            log.info("Ментор с id ={} обновил телеграм", mentorId);
-        });
+    public void updatePhoto(Long mentorId, File file) {
+        getMentorById(mentorId).ifPresentOrElse(mentor -> {
+            mentor.setUrlPhoto(googleDriveService.uploadImageToDrive(file));
+            log.info("Пользователь с id={} сменил фотографию", mentorId);
+            mentorRepository.save(mentor);
+        }, () -> log.info("Не удалось обновить фотографию у пользователя с id = {}", mentorId));
     }
 
     /**
@@ -134,12 +137,12 @@ public class MentorService {
     // или имени или фамилии или имени и фамилии  ??
 
 
-    public void answerToRequest(Long requestId, RequestState requestState){
+    public void answerToRequest(Long requestId, RequestState requestState) {
         Optional<Request> optionalRequest = requestService.getRequestById(requestId);
-        if (optionalRequest.isPresent()){
+        if (optionalRequest.isPresent()) {
             Request request = optionalRequest.get();
             request.setRequestState(requestState);
-            if(request.getRequestState().equals(RequestState.ACCEPTED)){
+            if (request.getRequestState().equals(RequestState.ACCEPTED)) {
                 Mentor mentor = request.getMentor();
                 Student student = request.getStudent();
                 mentor.getAcceptedStudent().add(request.getStudent());
@@ -148,8 +151,7 @@ public class MentorService {
             //TODO Проверить сохранение в лист запросов
             requestService.saveRequest(request);
             log.info("Статус запроса с id={} изменен на {}", requestId, requestState.name());
-        }
-        else {
+        } else {
             log.info("Статус запроса с id={} не изменен", requestId);
         }
     }

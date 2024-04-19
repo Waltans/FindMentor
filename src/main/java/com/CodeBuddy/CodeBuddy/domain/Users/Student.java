@@ -3,7 +3,6 @@ package com.CodeBuddy.CodeBuddy.domain.Users;
 import com.CodeBuddy.CodeBuddy.domain.Comment;
 import com.CodeBuddy.CodeBuddy.domain.Post;
 import com.CodeBuddy.CodeBuddy.domain.Request;
-import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -24,10 +23,10 @@ public class Student {
     private String email;
     private String telegram;
 
-    @OneToMany(mappedBy = "student",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "student",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "student", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
@@ -45,5 +44,7 @@ public class Student {
             inverseJoinColumns = @JoinColumn(name = "mentor_id")
     )
     private List<Mentor> acceptedMentor = new ArrayList<>();
+
+    private String photoUrl;
 
 }

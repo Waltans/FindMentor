@@ -30,4 +30,7 @@ public class Post {
     @ManyToOne
     private Student student;
 
+    @ElementCollection
+    private List<String> urlPhoto = new ArrayList<>(3);
+
 }

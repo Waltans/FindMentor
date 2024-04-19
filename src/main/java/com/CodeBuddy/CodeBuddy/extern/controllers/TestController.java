@@ -12,7 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
 @RestController
@@ -23,6 +26,7 @@ public class TestController {
     private final RequestService requestService;
 
     private final RequestRepository requestRepository;
+
     @Autowired
     public TestController(MentorService mentorService, StudentService studentService, RequestService requestService, RequestRepository requestRepository) {
         this.mentorService = mentorService;
@@ -30,31 +34,32 @@ public class TestController {
         this.requestService = requestService;
         this.requestRepository = requestRepository;
     }
+
     @PostMapping("/request")
-    public ResponseEntity<Request> createRequest(@RequestBody Request request){
+    public ResponseEntity<Request> createRequest(@RequestBody Request request) {
         requestService.saveRequest(request);
         return new ResponseEntity<>(request, HttpStatus.CREATED);
     }
 
     @PostMapping("/mentor")
-    public ResponseEntity<Mentor> createMentor(@RequestBody Mentor mentor){
+    public ResponseEntity<Mentor> createMentor(@RequestBody Mentor mentor) {
         mentorService.saveMentor(mentor);
         return new ResponseEntity<>(mentor, HttpStatus.CREATED);
     }
 
     @PostMapping("/student")
-    public ResponseEntity<Student> createStudent(@RequestBody Student student){
+    public ResponseEntity<Student> createStudent(@RequestBody Student student) {
         studentService.saveStudent(student);
         return new ResponseEntity<>(student, HttpStatus.CREATED);
     }
 
     @GetMapping("/request/{mentor}/{studentId}")
     public Request createRequest(@PathVariable Long mentor, @PathVariable Long studentId) {
-        return studentService.createRequestForMentor(mentor,studentId,"description");
+        return studentService.createRequestForMentor(mentor, studentId, "description");
     }
 
     @PutMapping("/{id}")
-    public Request updateRequest(@PathVariable("id") Long requestId){
+    public Request updateRequest(@PathVariable("id") Long requestId) {
         Optional<Request> request = requestService.getRequestById(requestId);
         request.get().setRequestState(RequestState.SEND);
         requestService.saveRequest(request.get());
@@ -63,18 +68,27 @@ public class TestController {
 
 
     @GetMapping("/student/{id}")
-    public ResponseEntity<Student> getStudent(@PathVariable("id") Long id){
-        if (studentService.getStudentById(id).isPresent()){
+    public ResponseEntity<Student> getStudent(@PathVariable("id") Long id) {
+        if (studentService.getStudentById(id).isPresent()) {
             return ResponseEntity.ok(studentService.getStudentById(id).get());
         }
         return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/mentor/{id}")
-    public Mentor getMentor(@PathVariable("id") Long id){
+    public Mentor getMentor(@PathVariable("id") Long id) {
         return mentorService.getMentorById(id).get();
     }
 
-
+    @PostMapping("/updatePhoto")
+    public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        File tempFile = File.createTempFile("temp", null);
+        file.transferTo(tempFile);
+        studentService.UpdatePhotoStudent(tempFile, 1L);
+        return ResponseEntity.ok().build();
+    }
 
 }
