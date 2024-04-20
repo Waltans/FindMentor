@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "codebuddy-420814",
+  "private_key_id": "f720bd191fa5b3115db9c278cf84401e26a79e5e",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCnmt0cHZe1QyGv\nE9llxrdBc9Jl7lXUvmUbgHp21bHZG2lMlGYbjjkaO5BeUkd5HmP1W8LAk/R7Yudf\nGQOtJcBxae7j1vyAV7s10x0MvFE3OmcuicdrapCQJPqPRjATO6+hcIk6c3tq/MoW\n15ES5zxUIfYt5G8RUz80n5tkPJXyn7r1SrBCRFLq/Cj34vTiakU28iDXVodytD8z\n2V+zwIDuQ/lA9d7+ohsuDX/+sk5n3cOXgHYtLC/F09DSLkzVXGklgtpdLsTPs5SQ\ndJLhomYervI7Ntl4zHYM09TEIb2AyGcjgG6h3dGp1+mIaafdxdUsm5ZH+kScQ2ZK\n9Wn2xVONAgMBAAECggEAHUw02nVRz52sha4yklfqMMbOQIMo/cdKZURQI/W24Pyp\nq3lFYAu8b5l54wL++20UjA8+O+uhEPB5AWad/eZbfXfHCozKFqU/VGlS6qcAi2bq\nInhzI5O9MXVFV0YtoS8NxGqnklAdgtYtfVCxS1ygbxSAtAT6ZUzn/4rm3t64V3DM\nEBK5VDU7sBjsmCpMm2fW6c2pUkVTnGAVZEN1Emzz6x24Ik1kThLTQhhQztseMhvo\nolvxw2R6jdIR/Jhaf07918tviCD6x023+RqpooFoszXwOIjhsUTjpGtzMfMFn5Lq\nAFKMjYqWbeme4KXhG0QGrAV0SzwdVZF8pe207tOQAQKBgQDSklHXq3Eo6q+PgjRw\ne4yZB+ozQrHgsotTNVOWjoNutWzNsg3yfgG/5C/32SkPNIj2MgkVF2sJaLUocw4P\ntsVDInXSyHzPGoE32GfyvsU4tLc9s9zLRotZJLbeLiR/jLAxdTDjV7hDSj0g5RBy\nQWjcr6HEyjG5SBXSJ7YxSvwP/QKBgQDLw4kVN2Svmkv1UtiZuhLk/wSj7bOJZOdz\nw1SYB9/38PAgHcyaXoAl56PnF67ayw+OgfelCGLN/+BzIK69Tkn7q5pz1h0oSyyo\nXYhGGVIzY4/w/MeXn4PdDmPxo2/X/vzSkcjSFLahIhs2iBGpbcSdUF6jWmCqZblT\n+NNbyaE+0QKBgEAKuFF7luL23YYr937uVIiGW7hTZH4OT0lzQoTbuyWEkB7PNGa3\n5BhUcjJTHaW+OJmIBjMf+DHYYqB2vaQR1lTguiztROhIC1zMuHCfjKP+cmyVs2Uv\ng1oNTICuT/Nq+ntQRRofp67veT/z6tiVBCt6Txzm0dCkF97erQ6424iRAoGAZtdQ\nt8GWcr6oebAPnD76zFMdz3LoO38PBjFe38CRvL0BJOSFYKAzg24PHlKosMruFhno\nmIXMAHaVnOWw6+C4nGn28WHuo2iVqIBUiDS9dSxZ+OJMBm2/CvH5ZXr8twJ+LfTg\na4+CwX7KR1KTv3SkWFW4/i9ePIJM8GHUoy330RECgYEAmFRYw7xkDTSQ6bYIWh2e\nnUaEkXoXn7ShXv845XD/OAP6eeqWfWKSLSYkpXqXR1UHGSyTy+8AwMN1KXYNAJ5L\nOipWp9XQ0moOHVFr4xp/24gzbbs3p998Hsi7ZU06ABOr0ZC70zb0HTOwff2icmUV\n+cDeWpHjq31iutQVVWu2Q8w=\n-----END PRIVATE KEY-----\n",
+  "client_email": "serviceaccountcodebuddy@codebuddy-420814.iam.gserviceaccount.com",
+  "client_id": "107753875028799281904",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/serviceaccountcodebuddy%40codebuddy-420814.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

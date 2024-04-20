@@ -146,7 +146,8 @@ public class StudentService {
 
     public void UpdatePhotoStudent(File file, Long studentId) {
         getStudentById(studentId).ifPresentOrElse(student -> {
-            student.setPhotoUrl(googleDriveService.uploadImageToDrive(file));
+            String url = googleDriveService.uploadImageToDrive(file);
+            student.setPhotoUrl(url);
             log.info("Пользователь с id={} сменил фотографию", studentId);
             studentRepository.save(student);
         }, () -> log.info("Не удалось обновить фотографию у пользователя с id = {}", studentId));

@@ -37,7 +37,7 @@ public class GoogleDriveService {
         return new Drive.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
                 JSON_FACTORY,
-                credential).build();
+                credential).setApplicationName("CodeBuddyEditor").build();
     }
 
     /**
