@@ -1,5 +1,6 @@
 package com.CodeBuddy.CodeBuddy.domain.Users;
 
+import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -35,8 +36,16 @@ public class Mentor {
 
     private String description;
 
-    @ElementCollection
-    private Set<String> keyword;
+    /**
+     * Список ключевых слов
+     */
+    @ManyToMany
+    @JoinTable(
+            name = "keyword_mentor",
+            joinColumns = @JoinColumn(name = "mentor_id"),
+            inverseJoinColumns = @JoinColumn(name = "keyword_id")
+    )
+    private List<Keyword> keywords = new ArrayList<>();
 
     @OneToMany(mappedBy = "mentor", fetch = FetchType.LAZY)
     private List<Request> requests = new ArrayList<>();

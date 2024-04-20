@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.io.File;
 import java.util.Optional;
 
@@ -22,14 +23,14 @@ public class MentorService {
     private final MentorRepository mentorRepository;
     private final RequestService requestService;
     private final StudentService studentService;
-    private final GoogleDriveService googleDriveService;
 
     @Autowired
-    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService, GoogleDriveService googleDriveService) {
+    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
         this.studentService = studentService;
         this.googleDriveService = googleDriveService;
+        this.keywordService = keywordService;
     }
 
 
@@ -67,13 +68,27 @@ public class MentorService {
      * @param mentorId
      * @param newEmail
      */
-    public void updateEmail(Long mentorId, String newEmail, String newTelegram) {
+    public void updateEmail(Long mentorId, String newEmail) {
         Optional<Mentor> mentor = getMentorById(mentorId);
         mentor.ifPresent(value -> {
             value.setEmail(newEmail);
+            mentorRepository.save(value);
+            log.info("Пользователь с id ={} обновил почту", mentorId);
+        });
+    }
+
+    /**
+     * Обновить телеграм ментора
+     *
+     * @param mentorId
+     * @param newTelegram
+     */
+    public void updateTelegram(Long mentorId, String newTelegram) {
+        Optional<Mentor> mentor = getMentorById(mentorId);
+        mentor.ifPresent(value -> {
             value.setEmail(newTelegram);
             mentorRepository.save(value);
-            log.info("Пользователь с id ={} обновил почту и телеграмм", mentorId);
+            log.info("Ментор с id ={} обновил телеграм", mentorId);
         });
     }
 
@@ -128,21 +143,35 @@ public class MentorService {
         return mentorRepository.findAll(pageable);
     }
 
-    //TODO метод для отправки всех ключевых слов Леша
-
-    //TODO метод для добавления ключевых слов и удаления
+    /**
+     * Метод для добавления ключевых слов
+     * @param mentorId идентификатор ментора
+     * @param keywordId идентификатор ключевого слова
+     */
+    public void addKeyword(Long mentorId, Long keywordId){
+        Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
+        Optional<Keyword> keywordOptional = keywordService.getById(mentorId);
+        if (keywordOptional.isPresent() && mentorOptional.isPresent()){
+            Mentor mentor = mentorOptional.get();
+            mentor.getKeywords().add(keywordOptional.get());
+            mentorRepository.save(mentor);
+            log.info("Ментору с id = {} добавлено ключевое слово с id = {}", mentorId, keywordId);
+        }
+        else
+            log.info("Ментору с id = {} не добавлено ключевое слово с id = {}", mentorId, keywordId);
+    }
 
 
     //TODO метод для поиска по ключевым словам
     // или имени или фамилии или имени и фамилии  ??
 
 
-    public void answerToRequest(Long requestId, RequestState requestState) {
+    public void answerToRequest(Long requestId, RequestState requestState){
         Optional<Request> optionalRequest = requestService.getRequestById(requestId);
-        if (optionalRequest.isPresent()) {
+        if (optionalRequest.isPresent()){
             Request request = optionalRequest.get();
             request.setRequestState(requestState);
-            if (request.getRequestState().equals(RequestState.ACCEPTED)) {
+            if(request.getRequestState().equals(RequestState.ACCEPTED)){
                 Mentor mentor = request.getMentor();
                 Student student = request.getStudent();
                 mentor.getAcceptedStudent().add(request.getStudent());
@@ -151,7 +180,8 @@ public class MentorService {
             //TODO Проверить сохранение в лист запросов
             requestService.saveRequest(request);
             log.info("Статус запроса с id={} изменен на {}", requestId, requestState.name());
-        } else {
+        }
+        else {
             log.info("Статус запроса с id={} не изменен", requestId);
         }
     }

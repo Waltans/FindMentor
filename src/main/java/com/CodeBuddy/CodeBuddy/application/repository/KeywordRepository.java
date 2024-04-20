@@ -4,12 +4,11 @@ import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
-import java.util.Optional;
-
 
 @Repository
-public interface MentorRepository extends JpaRepository<Mentor, Long> {
-    List<Mentor> getMentorByKeywordsIn(List<Keyword> keywords);
+public interface KeywordRepository extends JpaRepository<Keyword, Long> {
+    List<Keyword> findAll(List<Long> id);
 }
