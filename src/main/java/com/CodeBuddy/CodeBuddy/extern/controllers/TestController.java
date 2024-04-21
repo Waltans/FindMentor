@@ -89,7 +89,7 @@ public class TestController {
     }
 
     @PostMapping("/updatePhoto")
-    public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
+        public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
