@@ -1,14 +1,18 @@
 package com.CodeBuddy.CodeBuddy.extern.controllers;
 
 import com.CodeBuddy.CodeBuddy.application.repository.RequestRepository;
+import com.CodeBuddy.CodeBuddy.application.services.KeywordService;
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.application.services.RequestService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
+import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -27,12 +32,15 @@ public class TestController {
 
     private final RequestRepository requestRepository;
 
+    private final KeywordService keywordService;
+
     @Autowired
-    public TestController(MentorService mentorService, StudentService studentService, RequestService requestService, RequestRepository requestRepository) {
+    public TestController(MentorService mentorService, StudentService studentService, RequestService requestService, RequestRepository requestRepository, KeywordService keywordService) {
         this.mentorService = mentorService;
         this.studentService = studentService;
         this.requestService = requestService;
         this.requestRepository = requestRepository;
+        this.keywordService = keywordService;
     }
 
     @PostMapping("/request")
@@ -89,6 +97,32 @@ public class TestController {
         file.transferTo(tempFile);
         studentService.UpdatePhotoStudent(tempFile, 1L);
         return ResponseEntity.ok().build();
+    }
+
+    @RequestMapping("/keyword")
+    public ResponseEntity<Void> createKeyword(@RequestBody Keyword keyword){
+        keywordService.addKeyword(keyword);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/mentor/{mentorId}/{keywordId}")
+    public ResponseEntity<Void> addKeyword(@PathVariable("mentorId") Long mentorId,
+                                           @PathVariable("keywordId") Long keywordId){
+        mentorService.addKeyword(mentorId, keywordId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/mentor/{mentorId}/{keywordId}")
+    public ResponseEntity<Void> deleteKeyword(@PathVariable("mentorId") Long mentorId,
+                                           @PathVariable("keywordId") Long keywordId){
+        mentorService.removeKeyword(mentorId, keywordId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/mentor/keywords")
+    public ResponseEntity<Page<Mentor>> getMentorsByKeywords(@RequestBody List<Long> keywordsId){
+        Page<Mentor> mentorPage = mentorService.getMentorsByKeywords(keywordsId, PageRequest.of(0, 2));
+        return new ResponseEntity<>(mentorPage, HttpStatus.OK);
     }
 
 }

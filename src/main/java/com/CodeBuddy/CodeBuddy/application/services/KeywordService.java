@@ -42,7 +42,7 @@ public class KeywordService {
     }
 
     public List<Keyword> getAllKeywordsById(List<Long> id){
-        List<Keyword> keywords = keywordRepository.findAll(id);
+        List<Keyword> keywords = keywordRepository.findAllByIdIn(id);
         log.info("Получен список ключевых слов по определенным id");
         return keywords;
     }

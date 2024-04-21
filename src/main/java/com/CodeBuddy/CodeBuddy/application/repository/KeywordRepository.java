@@ -10,5 +10,5 @@ import java.util.List;
 
 @Repository
 public interface KeywordRepository extends JpaRepository<Keyword, Long> {
-    List<Keyword> findAll(List<Long> id);
+    List<Keyword> findAllByIdIn(List<Long> id);
 }

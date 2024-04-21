@@ -1,6 +1,7 @@
 package com.CodeBuddy.CodeBuddy.application.services;
 
 import com.CodeBuddy.CodeBuddy.application.repository.MentorRepository;
+import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
@@ -11,8 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.io.File;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -23,9 +24,11 @@ public class MentorService {
     private final MentorRepository mentorRepository;
     private final RequestService requestService;
     private final StudentService studentService;
+    private final GoogleDriveService googleDriveService;
+    private final KeywordService keywordService;
 
     @Autowired
-    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService) {
+    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService, KeywordService keywordService, GoogleDriveService googleDriveService) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
         this.studentService = studentService;
@@ -161,9 +164,36 @@ public class MentorService {
             log.info("Ментору с id = {} не добавлено ключевое слово с id = {}", mentorId, keywordId);
     }
 
+    /**
+     * Метод удаления ключевого слова
+     * @param mentorId идентификатор ментора
+     * @param keywordId идентификатор ключевого слова
+     */
+    public void removeKeyword(Long mentorId, Long keywordId){
+        Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
+        Optional<Keyword> keywordOptional = keywordService.getById(mentorId);
+        if (keywordOptional.isPresent() && mentorOptional.isPresent()){
+            Mentor mentor = mentorOptional.get();
+            mentor.getKeywords().remove(keywordOptional.get());
+            mentorRepository.save(mentor);
+            log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
+        }
+        else
+            log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
+    }
 
-    //TODO метод для поиска по ключевым словам
-    // или имени или фамилии или имени и фамилии  ??
+    /**
+     * Метод получения менторов с определенными ключевыми словами
+     * @param keywordId идентификатор ключевого слова
+     * @param pageable Объект для пагинации
+     * @return Страница с менторами
+     */
+    public Page<Mentor> getMentorsByKeywords(List<Long> keywordId, Pageable pageable){
+        List<Keyword> keywords = keywordService.getAllKeywordsById(keywordId);
+        Page<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords, pageable);
+        log.info("Получен список менторов с определенными ключевыми словами");
+        return mentorPage;
+    }
 
 
     public void answerToRequest(Long requestId, RequestState requestState){
