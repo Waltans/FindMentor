@@ -68,40 +68,33 @@ public class StudentService {
     /**
      * Обновление почты ученика
      *
-     * @param studentId
+     * @param student
      * @param newEmail
      */
-    public void updateInformation(Long studentId, String newEmail, String newTelegram, String description) {
-        // TODO логин и пароль
-        getStudentById(studentId).ifPresentOrElse(student -> {
-            student.setEmail(newEmail);
-            student.setTelegram(newTelegram);
-            student.setDescription(description);
-            studentRepository.save(student);
-            log.info("Данные пользователя с id={} изменилась ", studentId);
-        }, () -> log.info("Изменить данные не получилось "));
+    public void updateInformation(Student student, String newEmail, String newTelegram, String description) {
+        if (newEmail != null) student.setEmail(newEmail);
+        if (newTelegram != null) student.setTelegram(newTelegram);
+        if (description != null) student.setDescription(description);
+        studentRepository.save(student);
+        log.info("Данные пользователя с id={} изменилась ", student.getId());
     }
 
     /**
      * Метод для создания запроса студентом
      *
-     * @param mentorId
-     * @param studentId
      * @param description
      */
-    public Request createRequestForMentor(Long mentorId, Long studentId, String description) {
-        Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
-        Optional<Student> student = getStudentById(studentId);
-        if (student.isPresent() && mentor.isPresent()) {
+    public Request createRequestForMentor(Mentor mentor, Student student, String description) {
+        if (student != null && mentor != null) {
             Request request = new Request();
             request.setRequestState(RequestState.SEND);
-            request.setStudent(student.get());
-            request.setMentor(mentor.get());
-            student.get().getRequests().add(request);
-            mentor.get().getRequests().add(request);
+            request.setStudent(student);
+            request.setMentor(mentor);
+            student.getRequests().add(request);
+            mentor.getRequests().add(request);
             request.setDescription(description);
             requestService.saveRequest(request);
-            log.info("Запрос учеником c id={} и ментором c id={} был отправлен на сохранение", studentId, mentorId);
+            log.info("Запрос учеником c id={} и ментором c id={} был отправлен на сохранение", student.getId(), mentor.getId());
             return request;
         } else {
             log.info("Создать вопрос не удалось");
@@ -122,7 +115,9 @@ public class StudentService {
             Post post = new Post();
             post.setDescription(description);
             post.setStudent(student.get());
-            post.setUrlPhoto(addPhotoToPost(files));
+            if (files != null) {
+                post.setUrlPhoto(addPhotoToPost(files));
+            }
             postService.createPost(post);
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
         } else {
@@ -144,13 +139,18 @@ public class StudentService {
         return urls;
     }
 
-    public void UpdatePhotoStudent(File file, Long studentId) {
-        getStudentById(studentId).ifPresentOrElse(student -> {
-            String url = googleDriveService.uploadImageToDrive(file);
-            student.setPhotoUrl(url);
-            log.info("Пользователь с id={} сменил фотографию", studentId);
-            studentRepository.save(student);
-        }, () -> log.info("Не удалось обновить фотографию у пользователя с id = {}", studentId));
+
+    /**
+     * Обновление фото студента
+     *
+     * @param file
+     * @param student
+     */
+    public void updatePhotoStudent(File file, Student student) {
+        String url = googleDriveService.uploadImageToDrive(file);
+        student.setPhotoUrl(url);
+        log.info("Пользователь с id={} сменил фотографию", student.getId());
+        studentRepository.save(student);
     }
 
     public void sendComment(Long studentId, Long postId, String content) {
@@ -163,31 +163,33 @@ public class StudentService {
             comment.setContent(content);
             comment.setPost(post.get());
             student.get().getComments().add(comment);
-            commentService.createComment(comment);
             log.info("Комментарий передан на создание");
+            commentService.createComment(comment);
         } else {
             log.info("Не удалось создать комментарий");
         }
     }
 
-//    public Mentor getMentorData(Long mentorId, Long studentId) {
-//        //TODO
-//        return null;
-//    }
-
     /**
      * Метод для отмены запроса
      *
-     * @param requestId
-     * @param studentId
+     * @param request
+     * @param student
      */
-    public void cancelRequest(Long requestId, Long studentId) {
-        requestService.getRequestById(requestId).ifPresentOrElse(request -> {
-            request.getStudent().getId().equals(studentId);
-            requestService.deleteRequest(requestId);
-            log.info("Запрос с id={}, удален учеником с id={}", requestId, studentId);
-        }, () -> log.info("Не удалось отменить запрос с id={} ученику с id={}", requestId, studentId));
+    public void cancelRequest(Request request, Student student) {
+        if (request.getStudent().getId().equals(student.getId())) {
+            requestService.deleteRequest(request);
+            log.info("Запрос с id={}, удален учеником с id={}", request.getId(), student.getId());
+
+        }
     }
 
-    //TODO лайки постов
+    public void updateSecurity(Student student, String newPassword, String newEmail) {
+        if (newPassword != null) student.setPassword(newPassword);
+        if (student.getEmail() != null) student.setEmail(newEmail);
+        studentRepository.save(student);
+        log.info("Пользователь c id={} изменил пароль и почту", student.getId());
+    }
+
+//TODO лайки постов
 }

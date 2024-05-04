@@ -81,6 +81,23 @@ public class RequestService {
         }
     }
 
+    /**
+     * Удаление запроса
+     *
+     * @param
+     */
+    public void deleteRequest(Request request) {
+        Student student = request.getStudent();
+        student.getRequests().remove(request);
+        Mentor mentor = request.getMentor();
+        mentor.getRequests().remove(request);
+        request.getMentor().getRequests().remove(request);
+        requestRepository.delete(request);
+        mentorRepository.save(mentor);
+        studentRepository.save(student);
+        log.info("Запрос с id={} удален", request.getId());
+    }
+
 
     /**
      * Получение всех запросов с определенным статусом
