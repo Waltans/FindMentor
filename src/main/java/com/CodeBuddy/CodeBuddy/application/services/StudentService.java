@@ -122,9 +122,11 @@ public class StudentService {
             Post post = new Post();
             post.setDescription(description);
             post.setStudent(student.get());
-            post.setUrlPhoto(addPhotoToPost(files));
-            postService.createPost(post);
+            if (files != null) {
+                post.setUrlPhoto(addPhotoToPost(files));
+            }
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
+            postService.createPost(post);
         } else {
             log.info("Ошибка создания поста");
         }
@@ -163,6 +165,7 @@ public class StudentService {
             comment.setContent(content);
             comment.setPost(post.get());
             student.get().getComments().add(comment);
+            post.get().getComments().add(comment);
             commentService.createComment(comment);
             log.info("Комментарий передан на создание");
         } else {

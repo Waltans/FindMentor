@@ -4,6 +4,8 @@ import com.CodeBuddy.CodeBuddy.application.repository.CommentRepository;
 import com.CodeBuddy.CodeBuddy.domain.Comment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -56,5 +58,15 @@ public class CommentService {
         log.info("Комментарий с id={} удален", id);
     }
 
-    //TODO
+
+    /**
+     * Метод для получения комментов по Id поста
+     *
+     * @param postId
+     * @param pageable
+     * @return
+     */
+    public Page<Comment> findCommentsByPostId(Long postId, Pageable pageable) {
+        return commentRepository.findCommentsByPostId(postId, pageable);
+    }
 }

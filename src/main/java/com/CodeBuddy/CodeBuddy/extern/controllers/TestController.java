@@ -1,10 +1,7 @@
 package com.CodeBuddy.CodeBuddy.extern.controllers;
 
 import com.CodeBuddy.CodeBuddy.application.repository.RequestRepository;
-import com.CodeBuddy.CodeBuddy.application.services.KeywordService;
-import com.CodeBuddy.CodeBuddy.application.services.MentorService;
-import com.CodeBuddy.CodeBuddy.application.services.RequestService;
-import com.CodeBuddy.CodeBuddy.application.services.StudentService;
+import com.CodeBuddy.CodeBuddy.application.services.*;
 import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
@@ -31,15 +28,16 @@ public class TestController {
     private final RequestService requestService;
 
     private final RequestRepository requestRepository;
-
+    private final PostService postRepository;
     private final KeywordService keywordService;
 
     @Autowired
-    public TestController(MentorService mentorService, StudentService studentService, RequestService requestService, RequestRepository requestRepository, KeywordService keywordService) {
+    public TestController(MentorService mentorService, StudentService studentService, RequestService requestService, RequestRepository requestRepository, PostService postRepository, KeywordService keywordService) {
         this.mentorService = mentorService;
         this.studentService = studentService;
         this.requestService = requestService;
         this.requestRepository = requestRepository;
+        this.postRepository = postRepository;
         this.keywordService = keywordService;
     }
 
@@ -89,7 +87,7 @@ public class TestController {
     }
 
     @PostMapping("/updatePhoto")
-        public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
+    public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -100,29 +98,35 @@ public class TestController {
     }
 
     @RequestMapping("/keyword")
-    public ResponseEntity<Void> createKeyword(@RequestBody Keyword keyword){
+    public ResponseEntity<Void> createKeyword(@RequestBody Keyword keyword) {
         keywordService.addKeyword(keyword);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/mentor/{mentorId}/{keywordId}")
     public ResponseEntity<Void> addKeyword(@PathVariable("mentorId") Long mentorId,
-                                           @PathVariable("keywordId") Long keywordId){
+                                           @PathVariable("keywordId") Long keywordId) {
         mentorService.addKeyword(mentorId, keywordId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/mentor/{mentorId}/{keywordId}")
     public ResponseEntity<Void> deleteKeyword(@PathVariable("mentorId") Long mentorId,
-                                           @PathVariable("keywordId") Long keywordId){
+                                              @PathVariable("keywordId") Long keywordId) {
         mentorService.removeKeyword(mentorId, keywordId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/mentor/keywords")
-    public ResponseEntity<Page<Mentor>> getMentorsByKeywords(@RequestBody List<Long> keywordsId){
+    public ResponseEntity<Page<Mentor>> getMentorsByKeywords(@RequestBody List<Long> keywordsId) {
         Page<Mentor> mentorPage = mentorService.getMentorsByKeywords(keywordsId, PageRequest.of(0, 2));
         return new ResponseEntity<>(mentorPage, HttpStatus.OK);
+    }
+
+    @PostMapping("/posts")
+    public ResponseEntity<Void> createPost(@RequestParam Long studentId, @RequestParam String description) {
+        studentService.createPost(studentId, description, null);
+        return ResponseEntity.ok().build();
     }
 
 }
