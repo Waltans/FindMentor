@@ -42,11 +42,14 @@ public class MentorService {
      *
      * @param mentor
      */
-    public void saveMentor(Mentor mentor) {
-        if (mentor != null) {
+    public boolean saveMentor(Mentor mentor) {
+        if (!mentorRepository.findAll().stream().map(Mentor::getId).toList().contains(mentor.getId())) {
             mentorRepository.save(mentor);
             log.info("Ментор с id = {} сохранен в базу", mentor.getId());
+            return true;
         }
+        log.info("Ментор с id = {} уже существует", mentor.getId());
+        return false;
     }
 
     /**
@@ -66,33 +69,22 @@ public class MentorService {
     }
 
     /**
-     * Обновление почты ментора
+     * Обновление почты и телеграма ментора
      *
      * @param mentorId
      * @param newEmail
      */
-    public void updateEmail(Long mentorId, String newEmail) {
-        Optional<Mentor> mentor = getMentorById(mentorId);
-        mentor.ifPresent(value -> {
-            value.setEmail(newEmail);
-            mentorRepository.save(value);
+    public boolean updateEmailAndTelegram(Long mentorId, String newEmail, String newTelegram) {
+        Optional<Mentor> optionalMentor = getMentorById(mentorId);
+        if(optionalMentor.isPresent()){
+            Mentor mentor = optionalMentor.get();
+            mentor.setEmail(newEmail);
+            mentor.setTelegram(newTelegram);
+            mentorRepository.save(mentor);
             log.info("Пользователь с id ={} обновил почту", mentorId);
-        });
-    }
-
-    /**
-     * Обновить телеграм ментора
-     *
-     * @param mentorId
-     * @param newTelegram
-     */
-    public void updateTelegram(Long mentorId, String newTelegram) {
-        Optional<Mentor> mentor = getMentorById(mentorId);
-        mentor.ifPresent(value -> {
-            value.setEmail(newTelegram);
-            mentorRepository.save(value);
-            log.info("Ментор с id ={} обновил телеграм", mentorId);
-        });
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -110,40 +102,13 @@ public class MentorService {
     }
 
     /**
-     * Метод для изменения статуса запроса
-     *
-     * @param requestId
-     * @param mentorId
-     */
-    //TODO - 1
-    public void changeStatusRequest(Long requestId, Long mentorId, Long studentId, RequestState requestState) {
-        Optional<Request> request = requestService.getRequestById(requestId);
-        Optional<Mentor> mentor = getMentorById(mentorId);
-        Optional<Student> student = studentService.getStudentById(studentId);
-        if (mentor.isPresent() && request.isPresent() && student.isPresent()) {
-            if (request.get().getRequestState().equals(RequestState.SEND)) {
-                request.get().setRequestState(requestState);
-                log.info("Статус запроса с id = {} изменен на {} ментором с id ={}", requestId, requestState, mentorId);
-                if (requestState.equals(RequestState.ACCEPTED)) {
-                    mentor.get().getAcceptedStudent().add(student.get());
-                    student.get().getAcceptedMentor().add(mentor.get());
-                    request.get().setMentor(mentor.get());
-                    request.get().setStudent(student.get());
-                }
-            }
-            log.info("Изменение статуса запроса с id={} невозможно", requestId);
-        }
-    }
-
-    /**
      * Метод для получения всех менторов
      *
-     * @param pageable
      * @return
      */
-    public Page<Mentor> getAllMentors(Pageable pageable) {
+    public List<Mentor> getAllMentors() {
         log.info("Получены все менторы с пагинацией ");
-        return mentorRepository.findAll(pageable);
+        return mentorRepository.findAll();
     }
 
     /**
@@ -153,7 +118,7 @@ public class MentorService {
      */
     public void addKeyword(Long mentorId, Long keywordId){
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
-        Optional<Keyword> keywordOptional = keywordService.getById(mentorId);
+        Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
         if (keywordOptional.isPresent() && mentorOptional.isPresent()){
             Mentor mentor = mentorOptional.get();
             mentor.getKeywords().add(keywordOptional.get());
@@ -171,7 +136,7 @@ public class MentorService {
      */
     public void removeKeyword(Long mentorId, Long keywordId){
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
-        Optional<Keyword> keywordOptional = keywordService.getById(mentorId);
+        Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
         if (keywordOptional.isPresent() && mentorOptional.isPresent()){
             Mentor mentor = mentorOptional.get();
             mentor.getKeywords().remove(keywordOptional.get());
