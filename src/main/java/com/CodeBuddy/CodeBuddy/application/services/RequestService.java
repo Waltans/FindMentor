@@ -114,4 +114,14 @@ public class RequestService {
         }
         return null;
     }
+
+    /**
+     * Получает запрос по id студента и ментора
+     *
+     * @return
+     */
+    public RequestState getRequestByMentorAndStudent(Long mentorId, Long id) {
+        Optional<Request> request = requestRepository.findRequestByMentorIdAndStudentId(mentorId, id);
+        return request.map(Request::getRequestState).orElse(null);
+    }
 }

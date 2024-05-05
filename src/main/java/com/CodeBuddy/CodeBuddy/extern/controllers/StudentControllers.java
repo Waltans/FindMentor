@@ -7,7 +7,7 @@ import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
-import com.CodeBuddy.CodeBuddy.extern.DTO.*;
+import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -142,6 +142,20 @@ public class StudentControllers {
         }
         return ResponseEntity.notFound().build();
     }
+
+//    TODO Нужны DTO с контактами и без для ментора
+//    @GetMapping("{id}/mentor/{mentorId}")
+//    public ResponseEntity<?> getMentor(@PathVariable Long id, @PathVariable Long mentorId) {
+//        Optional<Student> student = studentService.getStudentById(id);
+//        Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
+//        if (student.isPresent() && mentor.isPresent()) {
+//            if (requestService.getRequestByMentorAndStudent(mentorId, id).equals(RequestState.ACCEPTED)) {
+//                return new ResponseEntity<>.ok(MentorDto, HttpStatus.OK);
+//            }
+//            return new ResponseEntity<>.ok(MentorDtoWithoutContact, HttpStatus.OK);
+//        }
+//        return ResponseEntity.notFound().build();
+//    }
 }
 
 

@@ -1,4 +1,4 @@
-package com.CodeBuddy.CodeBuddy.extern.DTO;
+package com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos;
 
 
 import lombok.Data;
