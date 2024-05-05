@@ -2,7 +2,9 @@ package com.CodeBuddy.CodeBuddy.domain;
 
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,6 +33,14 @@ public class Post {
     private Student student;
 
     @ElementCollection
+    @Setter(AccessLevel.NONE)
     private List<String> urlPhoto = new ArrayList<>(3);
 
+
+    public void setUrlPhoto(List<String> urlPhoto) {
+        if (urlPhoto.size() <= 3) {
+            this.urlPhoto.removeAll(urlPhoto);
+            this.urlPhoto.addAll(urlPhoto);
+        }
+    }
 }

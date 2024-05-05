@@ -172,7 +172,6 @@ public class MentorService {
                 mentor.getAcceptedStudent().add(request.getStudent());
                 student.getAcceptedMentor().add(request.getMentor());
             }
-            //TODO Проверить сохранение в лист запросов
             requestService.saveRequest(request);
             log.info("Статус запроса с id={} изменен на {}", requestId, requestState.name());
         }
