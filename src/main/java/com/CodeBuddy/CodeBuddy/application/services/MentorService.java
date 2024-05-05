@@ -6,10 +6,15 @@ import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,21 +24,24 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class MentorService {
+@RequiredArgsConstructor
+public class MentorService implements UserDetailsService {
 
     private final MentorRepository mentorRepository;
     private final RequestService requestService;
     private final StudentService studentService;
     private final GoogleDriveService googleDriveService;
     private final KeywordService keywordService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService, KeywordService keywordService, GoogleDriveService googleDriveService) {
+    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService, KeywordService keywordService, GoogleDriveService googleDriveService, PasswordEncoder passwordEncoder) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
         this.studentService = studentService;
         this.googleDriveService = googleDriveService;
         this.keywordService = keywordService;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -44,6 +52,7 @@ public class MentorService {
      */
     public boolean saveMentor(Mentor mentor) {
         if (!mentorRepository.findAll().stream().map(Mentor::getId).toList().contains(mentor.getId())) {
+            passwordEncoder.encode(mentor.getPassword());
             mentorRepository.save(mentor);
             log.info("Ментор с id = {} сохранен в базу", mentor.getId());
             return true;
@@ -76,7 +85,7 @@ public class MentorService {
      */
     public boolean updateEmailAndTelegram(Long mentorId, String newEmail, String newTelegram) {
         Optional<Mentor> optionalMentor = getMentorById(mentorId);
-        if(optionalMentor.isPresent()){
+        if (optionalMentor.isPresent()) {
             Mentor mentor = optionalMentor.get();
             mentor.setEmail(newEmail);
             mentor.setTelegram(newTelegram);
@@ -113,47 +122,48 @@ public class MentorService {
 
     /**
      * Метод для добавления ключевых слов
-     * @param mentorId идентификатор ментора
+     *
+     * @param mentorId  идентификатор ментора
      * @param keywordId идентификатор ключевого слова
      */
-    public void addKeyword(Long mentorId, Long keywordId){
+    public void addKeyword(Long mentorId, Long keywordId) {
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
         Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
-        if (keywordOptional.isPresent() && mentorOptional.isPresent()){
+        if (keywordOptional.isPresent() && mentorOptional.isPresent()) {
             Mentor mentor = mentorOptional.get();
             mentor.getKeywords().add(keywordOptional.get());
             mentorRepository.save(mentor);
             log.info("Ментору с id = {} добавлено ключевое слово с id = {}", mentorId, keywordId);
-        }
-        else
+        } else
             log.info("Ментору с id = {} не добавлено ключевое слово с id = {}", mentorId, keywordId);
     }
 
     /**
      * Метод удаления ключевого слова
-     * @param mentorId идентификатор ментора
+     *
+     * @param mentorId  идентификатор ментора
      * @param keywordId идентификатор ключевого слова
      */
-    public void removeKeyword(Long mentorId, Long keywordId){
+    public void removeKeyword(Long mentorId, Long keywordId) {
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
         Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
-        if (keywordOptional.isPresent() && mentorOptional.isPresent()){
+        if (keywordOptional.isPresent() && mentorOptional.isPresent()) {
             Mentor mentor = mentorOptional.get();
             mentor.getKeywords().remove(keywordOptional.get());
             mentorRepository.save(mentor);
             log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
-        }
-        else
+        } else
             log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
     }
 
     /**
      * Метод получения менторов с определенными ключевыми словами
+     *
      * @param keywordId идентификатор ключевого слова
-     * @param pageable Объект для пагинации
+     * @param pageable  Объект для пагинации
      * @return Страница с менторами
      */
-    public Page<Mentor> getMentorsByKeywords(List<Long> keywordId, Pageable pageable){
+    public Page<Mentor> getMentorsByKeywords(List<Long> keywordId, Pageable pageable) {
         List<Keyword> keywords = keywordService.getAllKeywordsById(keywordId);
         Page<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords, pageable);
         log.info("Получен список менторов с определенными ключевыми словами");
@@ -161,12 +171,12 @@ public class MentorService {
     }
 
 
-    public void answerToRequest(Long requestId, RequestState requestState){
+    public void answerToRequest(Long requestId, RequestState requestState) {
         Optional<Request> optionalRequest = requestService.getRequestById(requestId);
-        if (optionalRequest.isPresent()){
+        if (optionalRequest.isPresent()) {
             Request request = optionalRequest.get();
             request.setRequestState(requestState);
-            if(request.getRequestState().equals(RequestState.ACCEPTED)){
+            if (request.getRequestState().equals(RequestState.ACCEPTED)) {
                 Mentor mentor = request.getMentor();
                 Student student = request.getStudent();
                 mentor.getAcceptedStudent().add(request.getStudent());
@@ -174,9 +184,13 @@ public class MentorService {
             }
             requestService.saveRequest(request);
             log.info("Статус запроса с id={} изменен на {}", requestId, requestState.name());
-        }
-        else {
+        } else {
             log.info("Статус запроса с id={} не изменен", requestId);
         }
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return mentorRepository.getMentorByEmail(email);
     }
 }

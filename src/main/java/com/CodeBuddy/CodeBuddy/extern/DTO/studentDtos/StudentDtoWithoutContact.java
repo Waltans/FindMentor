@@ -10,10 +10,6 @@ public class StudentDtoWithoutContact {
 
     private String lastName;
 
-    private String email;
-
-    private String telegram;
-
     private String description;
 
     private String photoUrl;

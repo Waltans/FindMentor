@@ -3,16 +3,20 @@ package com.CodeBuddy.CodeBuddy.domain.Users;
 import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
 @Table(name = "Mentor")
-public class Mentor {
+public class Mentor implements UserDetails {
     @Id
     @Column(unique = true, nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +27,7 @@ public class Mentor {
     private String lastName;
 
     @Column(length = 60)
+    @Getter(AccessLevel.NONE)
     private String password;
 
     /**
@@ -65,4 +70,38 @@ public class Mentor {
      */
     private String urlPhoto;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getAuthorities();
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

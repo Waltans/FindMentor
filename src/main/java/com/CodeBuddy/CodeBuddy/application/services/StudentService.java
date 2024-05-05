@@ -8,8 +8,13 @@ import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -21,7 +26,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class StudentService {
+public class StudentService implements UserDetailsService {
 
     public final StudentRepository studentRepository;
     public final MentorService mentorService;
@@ -29,15 +34,17 @@ public class StudentService {
     public final PostService postService;
     public final CommentService commentService;
     public final GoogleDriveService googleDriveService;
+    public final PasswordEncoder passwordEncoder;
 
     public StudentService(StudentRepository studentRepository, @Lazy MentorService mentorService,
-                          RequestService requestService, PostService postService, CommentService commentService, GoogleDriveService googleDriveService) {
+                          RequestService requestService, PostService postService, CommentService commentService, GoogleDriveService googleDriveService, PasswordEncoder passwordEncoder) {
         this.studentRepository = studentRepository;
         this.mentorService = mentorService;
         this.requestService = requestService;
         this.postService = postService;
         this.commentService = commentService;
         this.googleDriveService = googleDriveService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -46,6 +53,7 @@ public class StudentService {
      * @param student
      */
     public void saveStudent(Student student) {
+        student.setPassword(passwordEncoder.encode(student.getPassword()));
         studentRepository.save(student);
         log.info("Ученик с id = {} сохранен в базу данных", student.getId());
     }
@@ -195,5 +203,8 @@ public class StudentService {
         log.info("Пользователь c id={} изменил пароль и почту", student.getId());
     }
 
-//TODO лайки постов
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return studentRepository.findByEmail(email);
+    }
 }
