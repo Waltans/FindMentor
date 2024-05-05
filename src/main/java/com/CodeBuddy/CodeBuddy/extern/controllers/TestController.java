@@ -9,7 +9,6 @@ import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
-import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -55,16 +54,11 @@ public class TestController {
         return new ResponseEntity<>(mentor, HttpStatus.CREATED);
     }
 
-    @PostMapping("/student")
-    public ResponseEntity<Student> createStudent(@RequestBody Student student) {
-        studentService.saveStudent(student);
-        return new ResponseEntity<>(student, HttpStatus.CREATED);
-    }
 
-    @GetMapping("/request/{mentor}/{studentId}")
-    public Request createRequest(@PathVariable Long mentor, @PathVariable Long studentId) {
-        return studentService.createRequestForMentor(mentor, studentId, "description");
-    }
+//    @GetMapping("/request/{mentor}/{studentId}")
+//    public Request createRequest(@PathVariable Long mentor, @PathVariable Long studentId) {
+//        return studentService.createRequestForMentor(mentor, studentId, "description");
+//    }
 
     @PutMapping("/{id}")
     public Request updateRequest(@PathVariable("id") Long requestId) {
@@ -75,52 +69,46 @@ public class TestController {
     }
 
 
-    @GetMapping("/student/{id}")
-    public ResponseEntity<Student> getStudent(@PathVariable("id") Long id) {
-        if (studentService.getStudentById(id).isPresent()) {
-            return ResponseEntity.ok(studentService.getStudentById(id).get());
-        }
-        return ResponseEntity.notFound().build();
-    }
+
 
     @GetMapping("/mentor/{id}")
     public Mentor getMentor(@PathVariable("id") Long id) {
         return mentorService.getMentorById(id).get();
     }
 
-    @PostMapping("/updatePhoto")
-        public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        File tempFile = File.createTempFile("temp", null);
-        file.transferTo(tempFile);
-        studentService.UpdatePhotoStudent(tempFile, 1L);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping("/updatePhoto")
+//    public ResponseEntity<Void> updatePhotoStudent(@RequestParam("image") MultipartFile file) throws IOException {
+//        if (file.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
+//        File tempFile = File.createTempFile("temp", null);
+//        file.transferTo(tempFile);
+//        studentService.updatePhotoStudent(tempFile, 1L);
+//        return ResponseEntity.ok().build();
+//    }
 
     @RequestMapping("/keyword")
-    public ResponseEntity<Void> createKeyword(@RequestBody Keyword keyword){
+    public ResponseEntity<Void> createKeyword(@RequestBody Keyword keyword) {
         keywordService.addKeyword(keyword);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/mentor/{mentorId}/{keywordId}")
     public ResponseEntity<Void> addKeyword(@PathVariable("mentorId") Long mentorId,
-                                           @PathVariable("keywordId") Long keywordId){
+                                           @PathVariable("keywordId") Long keywordId) {
         mentorService.addKeyword(mentorId, keywordId);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/mentor/{mentorId}/{keywordId}")
     public ResponseEntity<Void> deleteKeyword(@PathVariable("mentorId") Long mentorId,
-                                           @PathVariable("keywordId") Long keywordId){
+                                              @PathVariable("keywordId") Long keywordId) {
         mentorService.removeKeyword(mentorId, keywordId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/mentor/keywords")
-    public ResponseEntity<Page<Mentor>> getMentorsByKeywords(@RequestBody List<Long> keywordsId){
+    public ResponseEntity<Page<Mentor>> getMentorsByKeywords(@RequestBody List<Long> keywordsId) {
         Page<Mentor> mentorPage = mentorService.getMentorsByKeywords(keywordsId, PageRequest.of(0, 2));
         return new ResponseEntity<>(mentorPage, HttpStatus.OK);
     }

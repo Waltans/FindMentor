@@ -25,10 +25,10 @@ public class PostService {
      *
      * @param post
      */
-    public void createPost(Post post) {
+    public Post createPost(Post post) {
         post.setLocalDateTime(LocalDateTime.now());
-        postRepository.save(post);
-        log.info("Создан новый пост с id ={}, учеником с id ={}", post.getId(), post.getStudent().getId());
+        log.info("Создан новый пост, учеником с id ={}", post.getStudent().getId());
+        return postRepository.save(post);
     }
 
     /**
