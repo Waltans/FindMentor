@@ -52,7 +52,7 @@ public class MentorService implements UserDetailsService {
      */
     public boolean saveMentor(Mentor mentor) {
         if (!mentorRepository.findAll().stream().map(Mentor::getId).toList().contains(mentor.getId())) {
-            passwordEncoder.encode(mentor.getPassword());
+            mentor.setPassword(passwordEncoder.encode(mentor.getPassword()));
             mentorRepository.save(mentor);
             log.info("Ментор с id = {} сохранен в базу", mentor.getId());
             return true;

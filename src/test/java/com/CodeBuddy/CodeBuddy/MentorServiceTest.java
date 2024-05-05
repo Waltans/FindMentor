@@ -5,7 +5,6 @@ import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.application.services.RequestService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import com.CodeBuddy.CodeBuddy.domain.Request;
-import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import org.junit.jupiter.api.BeforeEach;

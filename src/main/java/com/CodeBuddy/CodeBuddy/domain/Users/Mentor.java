@@ -3,9 +3,7 @@ package com.CodeBuddy.CodeBuddy.domain.Users;
 import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -27,7 +25,6 @@ public class Mentor implements UserDetails {
     private String lastName;
 
     @Column(length = 60)
-    @Getter(AccessLevel.NONE)
     private String password;
 
     /**
@@ -72,12 +69,7 @@ public class Mentor implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getAuthorities();
-    }
-
-    @Override
-    public String getPassword() {
-        return this.password;
+        return List.of();
     }
 
     @Override

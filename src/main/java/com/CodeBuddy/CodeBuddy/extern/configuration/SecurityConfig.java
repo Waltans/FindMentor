@@ -1,7 +1,6 @@
 package com.CodeBuddy.CodeBuddy.extern.configuration;
 
 
-import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +22,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @Slf4j
 public class SecurityConfig {
 
-    private final MentorService mentorService;
     private final StudentService studentService;
 
     @Autowired
-    public SecurityConfig(@Lazy MentorService mentorService, @Lazy StudentService studentService) {
-        this.mentorService = mentorService;
+    public SecurityConfig(@Lazy StudentService studentService) {
         this.studentService = studentService;
     }
 
@@ -41,7 +38,6 @@ public class SecurityConfig {
                     authorizeHttp.requestMatchers("/students").permitAll();
                     authorizeHttp.requestMatchers("/students/**").authenticated();
                     authorizeHttp.requestMatchers("/mentor/**").authenticated();
-                    authorizeHttp.requestMatchers("/h2-console/**").permitAll();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
                 .build();
@@ -56,17 +52,8 @@ public class SecurityConfig {
         return daoAuthenticationProvider;
     }
 
-//    @Bean
-//    public AuthenticationProvider authenticationMentorProvider() {
-//        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-//        daoAuthenticationProvider.setUserDetailsService(mentorService);
-//        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
-//        return daoAuthenticationProvider;
-//    }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }

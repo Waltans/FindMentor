@@ -1,6 +1,7 @@
 package com.CodeBuddy.CodeBuddy.application.services;
 
 
+import com.CodeBuddy.CodeBuddy.application.repository.MentorRepository;
 import com.CodeBuddy.CodeBuddy.application.repository.StudentRepository;
 import com.CodeBuddy.CodeBuddy.domain.Comment;
 import com.CodeBuddy.CodeBuddy.domain.Post;
@@ -8,7 +9,6 @@ import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,9 +35,10 @@ public class StudentService implements UserDetailsService {
     public final CommentService commentService;
     public final GoogleDriveService googleDriveService;
     public final PasswordEncoder passwordEncoder;
+    private final MentorRepository mentorRepository;
 
     public StudentService(StudentRepository studentRepository, @Lazy MentorService mentorService,
-                          RequestService requestService, PostService postService, CommentService commentService, GoogleDriveService googleDriveService, PasswordEncoder passwordEncoder) {
+                          RequestService requestService, PostService postService, CommentService commentService, GoogleDriveService googleDriveService, PasswordEncoder passwordEncoder, MentorRepository mentorRepository, MentorRepository mentorRepository1) {
         this.studentRepository = studentRepository;
         this.mentorService = mentorService;
         this.requestService = requestService;
@@ -45,6 +46,7 @@ public class StudentService implements UserDetailsService {
         this.commentService = commentService;
         this.googleDriveService = googleDriveService;
         this.passwordEncoder = passwordEncoder;
+        this.mentorRepository = mentorRepository1;
     }
 
     /**
@@ -205,6 +207,17 @@ public class StudentService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return studentRepository.findByEmail(email);
+        Student student = studentRepository.findByEmail(email);
+        if (student != null) {
+            log.info("Найден ученик по данному email");
+            return student;
+        } else {
+            Mentor mentor = mentorRepository.getMentorByEmail(email);
+            if (mentor != null) {
+                log.info("Найден ментор по данному email");
+                return mentorService.loadUserByUsername(email);
+            }
+        }
+        return null;
     }
 }
