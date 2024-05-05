@@ -58,7 +58,6 @@ public class GoogleDriveService {
                     .setFields("id").execute();
             String imageUrl = "https://drive.google.com/uc?export=view&id=" + uploadedFile.getId();
             log.info("IMAGE URL: " + imageUrl);
-            file.delete();
             return imageUrl;
 
         } catch (Exception e) {

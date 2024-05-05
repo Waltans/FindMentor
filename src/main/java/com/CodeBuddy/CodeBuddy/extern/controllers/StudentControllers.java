@@ -4,10 +4,15 @@ package com.CodeBuddy.CodeBuddy.extern.controllers;
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.application.services.RequestService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
+import com.CodeBuddy.CodeBuddy.domain.Post;
 import com.CodeBuddy.CodeBuddy.domain.Request;
+import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
+import com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos.CreatePostDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos.CreatedPostDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.*;
+import com.CodeBuddy.CodeBuddy.extern.assambler.StudentAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -30,34 +37,49 @@ public class StudentControllers {
     //    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final MentorService mentorService;
     private final RequestService requestService;
-
+    private final StudentAssembler assembler;
 
     @PostMapping
-    public ResponseEntity<Student> createStudent(@Valid @RequestBody CreateStudentDTO studentDTO) {
+    public ResponseEntity<CreateStudentDTO> createStudent(@Valid @RequestBody CreateStudentDTO studentDTO) {
         Student student = new Student();
-        student.setFirstName(studentDTO.getName());
+        student.setFirstName(studentDTO.getFirstName());
         student.setLastName(studentDTO.getLastName());
         student.setEmail(studentDTO.getEmail());
         if (studentDTO.getPassword().equals(studentDTO.getRepeatPassword())) {
             student.setPassword(studentDTO.getPassword());
             studentService.saveStudent(student);
-            return new ResponseEntity<>(student, HttpStatus.CREATED);
+            CreateStudentDTO createStudentDTO = assembler.convertToDto(student);
+            return new ResponseEntity<>(createStudentDTO, HttpStatus.CREATED);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
+
     @GetMapping("{id}")
-    public ResponseEntity<Student> getStudent(@PathVariable("id") Long id) {
-        return studentService.getStudentById(id).map(value ->
-                        new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<StudentDtoWithoutContact> getStudent(@PathVariable("id") Long id) {
+        Optional<Student> student = studentService.getStudentById(id);
+        if (student.isPresent()) {
+            StudentDtoWithoutContact studentDTOWithoutContact = assembler.convertToDtoWithoutContact(student.get());
+            return new ResponseEntity<>(studentDTOWithoutContact, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
     }
+//      TODO
+//    @GetMapping("profile")
+//    public ResponseEntity<StudentDtoWithoutContact> profile() {
+//        Optional<Student> student = studentService.getStudentById(id);
+//        if (student.isPresent()) {
+//            StudentDtoWithoutContact studentDTOWithoutContact = assembler.convertToDtoWithoutContact(student.get());
+//            return new ResponseEntity<>(studentDTOWithoutContact, HttpStatus.OK);
+//        }
+//        return ResponseEntity.notFound().build();
+//    }
 
 
     @PutMapping("{id}/settings")
     public ResponseEntity<Void> updateStudentInformation(@PathVariable Long id, @Valid @RequestBody StudentUpdateInfoDTO updateInfoDTO) {
         if (updateInfoDTO == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest().build();
         }
         Optional<Student> optionalStudent = studentService.getStudentById(id);
         if (optionalStudent.isPresent()) {
@@ -65,6 +87,7 @@ public class StudentControllers {
                     updateInfoDTO.getTelegram(), updateInfoDTO.getDescription());
             return ResponseEntity.ok().build();
         } else {
+            log.info("Student with id {} not found", id);
             return ResponseEntity.notFound().build();
         }
     }
@@ -102,7 +125,7 @@ public class StudentControllers {
 
     @PostMapping("{id}/requests/mentors/{mentorId}")
     public ResponseEntity<RequestDTO> sendRequest(@PathVariable Long id, @PathVariable Long mentorId,
-                                                  @RequestBody StudentCreateRequest request) {
+                                                  @Valid @RequestBody StudentCreateRequest request) {
         Optional<Student> student = studentService.getStudentById(id);
         Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
         if (student.isPresent() && mentor.isPresent()) {
@@ -119,12 +142,28 @@ public class StudentControllers {
 
 
     @PostMapping("{id}/posts")
-    public ResponseEntity<Void> createPost(@PathVariable Long id, @RequestBody CreatePostDTO postDTO) {
+    public ResponseEntity<?> createPost(@PathVariable Long id, @Valid @ModelAttribute CreatePostDTO postDTO) throws IOException {
         Optional<Student> student = studentService.getStudentById(id);
         if (student.isPresent()) {
             if (postDTO.getDescription() != null) {
-                studentService.createPost(id, postDTO.getDescription(), postDTO.getFiles());
-                return ResponseEntity.ok().build();
+                List<File> fileList = new ArrayList<>(3);
+                if (postDTO.getFiles() != null && postDTO.getFiles().size() <= 3) {
+                    for (MultipartFile file : postDTO.getFiles()) {
+                        File tempFile = File.createTempFile("temp", null);
+                        file.transferTo(tempFile);
+                        fileList.add(tempFile);
+                    }
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Количество файлов должно быть не более 3");
+                }
+                Post post = studentService.createPost(id, postDTO.getDescription(), fileList);
+                CreatedPostDto createPostDTO = CreatedPostDto.builder()
+                        .creatorId(id)
+                        .description(postDTO.getDescription())
+                        .postId(post.getId())
+                        .urlsPhoto(post.getUrlPhoto())
+                        .build();
+                return new ResponseEntity<>(createPostDTO, HttpStatus.CREATED);
             }
             return ResponseEntity.badRequest().build();
         }
@@ -143,7 +182,7 @@ public class StudentControllers {
         return ResponseEntity.notFound().build();
     }
 
-//    TODO Нужны DTO с контактами и без для ментора
+//    //    TODO Нужны DTO с контактами и без для ментора
 //    @GetMapping("{id}/mentor/{mentorId}")
 //    public ResponseEntity<?> getMentor(@PathVariable Long id, @PathVariable Long mentorId) {
 //        Optional<Student> student = studentService.getStudentById(id);

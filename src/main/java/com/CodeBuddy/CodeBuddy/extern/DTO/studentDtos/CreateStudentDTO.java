@@ -13,7 +13,7 @@ public class CreateStudentDTO {
 
     @NotEmpty
     @NotNull
-    String name;
+    String firstName;
     @NotEmpty
     @NotNull
     String lastName;

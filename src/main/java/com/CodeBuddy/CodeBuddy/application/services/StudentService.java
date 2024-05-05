@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -109,19 +110,22 @@ public class StudentService {
      * @param studentId
      * @param description
      */
-    public void createPost(Long studentId, String description, List<File> files) {
+    public Post createPost(Long studentId, String description, List<File> files) throws IOException {
         Optional<Student> student = getStudentById(studentId);
         if (student.isPresent()) {
             Post post = new Post();
             post.setDescription(description);
             post.setStudent(student.get());
-            if (files != null) {
-                post.setUrlPhoto(addPhotoToPost(files));
+            if (files != null && files.size() <= 3) {
+                List<String> urls = addPhotoToPost(files);
+                post.setUrlPhoto(urls);
             }
-            postService.createPost(post);
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
+            return postService.createPost(post);
+
         } else {
             log.info("Ошибка создания поста");
+            throw new RuntimeException();
         }
     }
 
@@ -131,7 +135,7 @@ public class StudentService {
      * @param files - список файлов
      * @return список ссылок
      */
-    public List<String> addPhotoToPost(List<File> files) {
+    public List<String> addPhotoToPost(List<File> files) throws IOException {
         List<String> urls = new ArrayList<>(3);
         for (File file : files) {
             urls.add(googleDriveService.uploadImageToDrive(file));

@@ -4,7 +4,7 @@ package com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos;
 import lombok.Data;
 
 @Data
-public class StudentForMentorDTO {
+public class StudentDtoWithContact {
 
     private String firstName;
 

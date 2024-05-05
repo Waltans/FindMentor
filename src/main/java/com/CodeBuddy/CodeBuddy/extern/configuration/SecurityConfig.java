@@ -1,13 +1,13 @@
-//package com.CodeBuddy.CodeBuddy.extern.Configuration;
+//package com.CodeBuddy.CodeBuddy.extern.configuration;
 //
 //
-//import org.springframework.context.annotation.Configuration;
+//import org.springframework.context.annotation.configuration;
 //import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 //import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 //import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 //import org.springframework.security.web.SecurityFilterChain;
 //
-//@Configuration
+//@configuration
 //@EnableWebSecurity
 //public class SecurityConfig {
 //
