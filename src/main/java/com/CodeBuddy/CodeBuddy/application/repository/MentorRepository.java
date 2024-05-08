@@ -13,4 +13,6 @@ import java.util.List;
 @Repository
 public interface MentorRepository extends JpaRepository<Mentor, Long> {
     Page<Mentor> getMentorsByKeywordsIn(List<Keyword> keywords, Pageable pageable);
+
+    Mentor getMentorByEmail(String email);
 }

@@ -1,4 +1,4 @@
-package com.CodeBuddy.CodeBuddy.extern.assambler;
+package com.CodeBuddy.CodeBuddy.extern.assemblers;
 
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.CreateStudentDTO;

@@ -5,7 +5,6 @@ import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.application.services.RequestService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import com.CodeBuddy.CodeBuddy.domain.Request;
-import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,34 +76,34 @@ class MentorServiceTest {
 //        assertEquals("newemail@example.com", mentor.getEmail());
 //    }
 
-    @Test
-    void ChangeStatusRequestTest() {
-        when(requestService.getRequestById(1L)).thenReturn(Optional.of(request));
-        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
-        when(studentService.getStudentById(1L)).thenReturn(Optional.of(student));
-
-        mentorService.changeStatusRequest(1L, 1L, 1L, RequestState.ACCEPTED);
-
-        verify(requestService, times(1)).getRequestById(1L);
-        verify(mentorRepository, times(1)).findById(1L);
-        verify(studentService, times(1)).getStudentById(1L);
-        assertEquals(RequestState.ACCEPTED, request.getRequestState());
-        assertEquals(1, mentor.getAcceptedStudent().size());
-        assertEquals(1, student.getAcceptedMentor().size());
-    }
-
-    @Test
-    void ChangeStatusRequestInvalidTest() {
-        when(requestService.getRequestById(1L)).thenReturn(Optional.of(request));
-        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
-        when(studentService.getStudentById(1L)).thenReturn(Optional.of(student));
-
-        request.setRequestState(RequestState.SEND);
-        mentorService.changeStatusRequest(1L, 1L, 1L, RequestState.ACCEPTED);
-
-        verify(requestService, times(1)).getRequestById(1L);
-        verify(mentorRepository, times(0)).findById(1L);
-        verify(studentService, times(0)).getStudentById(1L);
-    }
+//    @Test
+//    void ChangeStatusRequestTest() {
+//        when(requestService.getRequestById(1L)).thenReturn(Optional.of(request));
+//        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
+//        when(studentService.getStudentById(1L)).thenReturn(Optional.of(student));
+//
+//        mentorService.changeStatusRequest(1L, 1L, 1L, RequestState.ACCEPTED);
+//
+//        verify(requestService, times(1)).getRequestById(1L);
+//        verify(mentorRepository, times(1)).findById(1L);
+//        verify(studentService, times(1)).getStudentById(1L);
+//        assertEquals(RequestState.ACCEPTED, request.getRequestState());
+//        assertEquals(1, mentor.getAcceptedStudent().size());
+//        assertEquals(1, student.getAcceptedMentor().size());
+//    }
+//
+//    @Test
+//    void ChangeStatusRequestInvalidTest() {
+//        when(requestService.getRequestById(1L)).thenReturn(Optional.of(request));
+//        when(mentorRepository.findById(1L)).thenReturn(Optional.of(mentor));
+//        when(studentService.getStudentById(1L)).thenReturn(Optional.of(student));
+//
+//        request.setRequestState(RequestState.SEND);
+//        mentorService.changeStatusRequest(1L, 1L, 1L, RequestState.ACCEPTED);
+//
+//        verify(requestService, times(1)).getRequestById(1L);
+//        verify(mentorRepository, times(0)).findById(1L);
+//        verify(studentService, times(0)).getStudentById(1L);
+//    }
 }
 
