@@ -1,6 +1,7 @@
 package com.CodeBuddy.CodeBuddy.extern.controllers;
 
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
+import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.extern.DTO.MentorDTO;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.MentorAssembler;
@@ -23,7 +24,7 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/mentor")
+@RequestMapping("/mentors")
 public class MentorController {
 
     private final MentorService mentorService;
@@ -79,6 +80,48 @@ public class MentorController {
     @GetMapping("/{page}")
     public ResponseEntity<Page<MentorDTO>> getAllMentor(@PathVariable("page") int page){
         List<Mentor> mentorList = mentorService.getAllMentors();
+        Page<MentorDTO> mentorPage = getMentorDTOS(page, mentorList);
+
+        return new ResponseEntity<>(mentorPage, HttpStatus.OK);
+    }
+
+    @PutMapping("/add-keyword/{mentorId}/{keywordId}")
+    public ResponseEntity<String> addKeyword(@PathVariable("keywordId") Long keywordId,
+                                             @PathVariable("mentorId") Long mentorId){
+        if(mentorService.addKeyword(mentorId, keywordId))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.badRequest().build();
+    }
+
+    @DeleteMapping("/add-keyword/{mentorId}/{keywordId}")
+    public ResponseEntity<String> removeKeyword(@PathVariable("keywordId") Long keywordId,
+                                             @PathVariable("mentorId") Long mentorId){
+        if(mentorService.removeKeyword(mentorId, keywordId))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("/by-keywords/{page}")
+    public ResponseEntity<Page<MentorDTO>> getAllMentorsByKeywords(@PathVariable("page") int page,
+                                                             @RequestParam("keywordsId") List<Long> keywordsId){
+        List<Mentor> mentorList = mentorService.getMentorsByKeywords(keywordsId);
+        Page<MentorDTO> mentorPage = getMentorDTOS(page, mentorList);
+
+        return new ResponseEntity<>(mentorPage, HttpStatus.OK);
+    }
+
+    @PutMapping("/request")
+    public ResponseEntity<String> respondToRequest(Long requestId, @RequestParam("request") String stringRequestState){
+        try {
+            RequestState requestState = RequestState.valueOf(stringRequestState);
+            mentorService.answerToRequest(requestId, requestState);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private Page<MentorDTO> getMentorDTOS(int page, List<Mentor> mentorList) {
         List<MentorDTO> mentorDTOList = mentorList.stream().map(mentorAssembler::mapToMentorDTO).toList();
         mentorList.forEach(mentor -> {
             mentor.setTelegram(null);
@@ -86,9 +129,7 @@ public class MentorController {
         });
 
         Pageable pageable = PageRequest.of(page, mentorDTOList.size());
-        Page<MentorDTO> mentorPage = new PageImpl<>(mentorDTOList, pageable, mentorDTOList.size());
-
-        return new ResponseEntity<>(mentorPage, HttpStatus.OK);
+        return new PageImpl<>(mentorDTOList, pageable, mentorDTOList.size());
     }
 
 

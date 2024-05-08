@@ -12,7 +12,7 @@ import java.util.List;
 
 @Repository
 public interface MentorRepository extends JpaRepository<Mentor, Long> {
-    Page<Mentor> getMentorsByKeywordsIn(List<Keyword> keywords, Pageable pageable);
+    List<Mentor> getMentorsByKeywordsIn(List<Keyword> keywords);
 
     Mentor getMentorByEmail(String email);
 }

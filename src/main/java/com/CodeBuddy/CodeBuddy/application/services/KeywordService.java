@@ -24,11 +24,19 @@ public class KeywordService {
      * Метод добавления ключевого слова в базу данных
      * @param keyword ключевое слово
      */
-    public void addKeyword(Keyword keyword){
+    public boolean addKeyword(Keyword keyword){
         if(keyword != null){
             keywordRepository.save(keyword);
             log.info("Ключевое слово с id = {} сохранено в базу данных", keyword.getId());
+            return true;
         }
+        log.info("Ключевое слово не добавлено");
+        return false;
+    }
+
+    public void removeKeyword(Long keywordId){
+        keywordRepository.deleteById(keywordId);
+        log.info("Ключевое слово с id = {} удалено из базы данных", keywordId);
     }
 
     /**

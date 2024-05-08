@@ -126,7 +126,7 @@ public class MentorService implements UserDetailsService {
      * @param mentorId  идентификатор ментора
      * @param keywordId идентификатор ключевого слова
      */
-    public void addKeyword(Long mentorId, Long keywordId) {
+    public boolean addKeyword(Long mentorId, Long keywordId) {
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
         Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
         if (keywordOptional.isPresent() && mentorOptional.isPresent()) {
@@ -134,8 +134,10 @@ public class MentorService implements UserDetailsService {
             mentor.getKeywords().add(keywordOptional.get());
             mentorRepository.save(mentor);
             log.info("Ментору с id = {} добавлено ключевое слово с id = {}", mentorId, keywordId);
-        } else
-            log.info("Ментору с id = {} не добавлено ключевое слово с id = {}", mentorId, keywordId);
+            return true;
+        }
+        log.info("Ментору с id = {} не добавлено ключевое слово с id = {}", mentorId, keywordId);
+        return false;
     }
 
     /**
@@ -144,7 +146,7 @@ public class MentorService implements UserDetailsService {
      * @param mentorId  идентификатор ментора
      * @param keywordId идентификатор ключевого слова
      */
-    public void removeKeyword(Long mentorId, Long keywordId) {
+    public boolean removeKeyword(Long mentorId, Long keywordId) {
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
         Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
         if (keywordOptional.isPresent() && mentorOptional.isPresent()) {
@@ -152,20 +154,21 @@ public class MentorService implements UserDetailsService {
             mentor.getKeywords().remove(keywordOptional.get());
             mentorRepository.save(mentor);
             log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
-        } else
-            log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
+            return true;
+        }
+        log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
+        return false;
     }
 
     /**
      * Метод получения менторов с определенными ключевыми словами
      *
      * @param keywordId идентификатор ключевого слова
-     * @param pageable  Объект для пагинации
      * @return Страница с менторами
      */
-    public Page<Mentor> getMentorsByKeywords(List<Long> keywordId, Pageable pageable) {
+    public List<Mentor> getMentorsByKeywords(List<Long> keywordId) {
         List<Keyword> keywords = keywordService.getAllKeywordsById(keywordId);
-        Page<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords, pageable);
+        List<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords);
         log.info("Получен список менторов с определенными ключевыми словами");
         return mentorPage;
     }
@@ -193,4 +196,5 @@ public class MentorService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return mentorRepository.getMentorByEmail(email);
     }
+
 }

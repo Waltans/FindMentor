@@ -1,5 +1,6 @@
 package com.CodeBuddy.CodeBuddy.extern.DTO;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +27,8 @@ public class MentorDTO {
 
     private int countConsultation = 0;
 
+    @NotNull
+    @Email
     private String email;
 
     private String telegram;
