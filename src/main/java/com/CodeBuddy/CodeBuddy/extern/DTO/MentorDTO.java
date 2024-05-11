@@ -2,10 +2,7 @@ package com.CodeBuddy.CodeBuddy.extern.DTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
-import org.checkerframework.common.aliasing.qual.Unique;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +10,7 @@ import java.util.List;
 @Data
 public class MentorDTO {
 
-    @NotNull(message = "Поле итендификатора не может быть пустым")
+    @NotNull(message = "Поле идентификатора не может быть пустым")
     private Long id;
 
     @NotNull(message = "Поле имени не может быть пустым")

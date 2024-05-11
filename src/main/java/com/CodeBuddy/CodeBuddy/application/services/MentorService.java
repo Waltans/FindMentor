@@ -9,6 +9,7 @@ import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,16 +30,16 @@ public class MentorService implements UserDetailsService {
 
     private final MentorRepository mentorRepository;
     private final RequestService requestService;
-    private final StudentService studentService;
     private final GoogleDriveService googleDriveService;
     private final KeywordService keywordService;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public MentorService(MentorRepository mentorRepository, RequestService requestService, StudentService studentService, KeywordService keywordService, GoogleDriveService googleDriveService, PasswordEncoder passwordEncoder) {
+    public MentorService(MentorRepository mentorRepository, RequestService requestService,
+                         KeywordService keywordService, GoogleDriveService googleDriveService,
+                         @Lazy PasswordEncoder passwordEncoder) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
-        this.studentService = studentService;
         this.googleDriveService = googleDriveService;
         this.keywordService = keywordService;
         this.passwordEncoder = passwordEncoder;

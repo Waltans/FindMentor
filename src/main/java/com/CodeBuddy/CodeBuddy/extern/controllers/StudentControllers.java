@@ -6,16 +6,21 @@ import com.CodeBuddy.CodeBuddy.application.services.RequestService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import com.CodeBuddy.CodeBuddy.domain.Post;
 import com.CodeBuddy.CodeBuddy.domain.Request;
+import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos.CreatePostDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos.CreatedPostDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.*;
+import com.CodeBuddy.CodeBuddy.extern.assemblers.MentorAssembler;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.StudentAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,10 +38,11 @@ import java.util.Optional;
 public class StudentControllers {
 
     private final StudentService studentService;
-    //    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final MentorService mentorService;
     private final RequestService requestService;
     private final StudentAssembler assembler;
+    private final MentorAssembler mentorAssembler;
 
     @PostMapping
     public ResponseEntity<CreateStudentDTO> createStudent(@Valid @RequestBody CreateStudentDTO studentDTO) {
@@ -56,6 +62,7 @@ public class StudentControllers {
 
     @GetMapping("{id}")
     public ResponseEntity<StudentDtoWithoutContact> getStudent(@PathVariable("id") Long id) {
+        log.info("Get student with id {}", id);
         Optional<Student> student = studentService.getStudentById(id);
         if (student.isPresent()) {
             StudentDtoWithoutContact studentDTOWithoutContact = assembler.convertToDtoWithoutContact(student.get());
@@ -63,40 +70,40 @@ public class StudentControllers {
         }
         return ResponseEntity.notFound().build();
     }
-//      TODO
-//    @GetMapping("profile")
-//    public ResponseEntity<StudentDtoWithoutContact> profile() {
-//        Optional<Student> student = studentService.getStudentById(id);
-//        if (student.isPresent()) {
-//            StudentDtoWithoutContact studentDTOWithoutContact = assembler.convertToDtoWithoutContact(student.get());
-//            return new ResponseEntity<>(studentDTOWithoutContact, HttpStatus.OK);
-//        }
-//        return ResponseEntity.notFound().build();
-//    }
+
+    @GetMapping("profile")
+    public ResponseEntity<StudentDtoWithContact> profile(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
+        if (student.isPresent()) {
+            StudentDtoWithContact studentDTOWithContact = assembler.convertToDtoWithContact(student.get());
+            return new ResponseEntity<>(studentDTOWithContact, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
+    }
 
 
-    @PutMapping("{id}/settings")
-    public ResponseEntity<Void> updateStudentInformation(@PathVariable Long id, @Valid @RequestBody StudentUpdateInfoDTO updateInfoDTO) {
+    @PutMapping("settings")
+    public ResponseEntity<Void> updateStudentInformation(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody StudentUpdateInfoDTO updateInfoDTO) {
         if (updateInfoDTO == null) {
             return ResponseEntity.badRequest().build();
         }
-        Optional<Student> optionalStudent = studentService.getStudentById(id);
+        Optional<Student> optionalStudent = studentService.findStudentByEmail(userDetails.getUsername());
         if (optionalStudent.isPresent()) {
             studentService.updateInformation(optionalStudent.get(), updateInfoDTO.getEmail(),
                     updateInfoDTO.getTelegram(), updateInfoDTO.getDescription());
             return ResponseEntity.ok().build();
         } else {
-            log.info("Student with id {} not found", id);
+            log.info("Student with id {} not found", userDetails.getUsername());
             return ResponseEntity.notFound().build();
         }
     }
 
-    @PutMapping("{id}/photo")
-    public ResponseEntity<Void> updatePhoto(@PathVariable Long id, @RequestParam("image") MultipartFile file) throws IOException {
+    @PutMapping("photo")
+    public ResponseEntity<Void> updatePhoto(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("image") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        Optional<Student> studentById = studentService.getStudentById(id);
+        Optional<Student> studentById = studentService.findStudentByEmail(userDetails.getUsername());
         if (studentById.isPresent()) {
             File tempFile = File.createTempFile("temp", null);
             file.transferTo(tempFile);
@@ -105,21 +112,21 @@ public class StudentControllers {
         } else return ResponseEntity.notFound().build();
     }
 
-//    @PutMapping("{id}/security")
-//    public ResponseEntity<Void> updatePassword(@PathVariable Long id,
-//                                               @Valid @RequestBody UpdateSecurityStudent securityStudent) {
-//
-//        Optional<Student> studentById = studentService.getStudentById(id);
-//        if (studentById.isPresent()) {
-//            if (bCryptPasswordEncoder.matches(securityStudent.getPassword(), studentById.get().getPassword())) {
-//                studentService.updateSecurity(studentById.get(), securityStudent.getNewPassword(),
-//                        securityStudent.getEmail());
-//                return ResponseEntity.ok().build();
-//            }
-//            return ResponseEntity.badRequest().build();
-//        }
-//        return ResponseEntity.notFound().build();
-//    }
+    @PutMapping("security")
+    public ResponseEntity<Void> updatePassword(@AuthenticationPrincipal UserDetails userDetails,
+                                               @Valid @RequestBody UpdateSecurityStudent securityStudent) {
+
+        Optional<Student> studentById = studentService.findStudentByEmail(userDetails.getUsername());
+        if (studentById.isPresent()) {
+            if (bCryptPasswordEncoder.matches(securityStudent.getPassword(), studentById.get().getPassword())) {
+                studentService.updateSecurity(studentById.get(), securityStudent.getNewPassword(),
+                        securityStudent.getEmail());
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 
 
     @PostMapping("{id}/requests/mentors/{mentorId}")
@@ -140,9 +147,10 @@ public class StudentControllers {
     }
 
 
-    @PostMapping("{id}/posts")
-    public ResponseEntity<?> createPost(@PathVariable Long id, @Valid @ModelAttribute CreatePostDTO postDTO) throws IOException {
-        Optional<Student> student = studentService.getStudentById(id);
+    @PostMapping("posts")
+    public ResponseEntity<?> createPost(@AuthenticationPrincipal UserDetails userDetails,
+                                        @Valid @ModelAttribute CreatePostDTO postDTO) throws IOException {
+        Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         if (student.isPresent()) {
             if (postDTO.getDescription() != null) {
                 List<File> fileList = new ArrayList<>(3);
@@ -155,9 +163,9 @@ public class StudentControllers {
                 } else {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Количество файлов должно быть не более 3");
                 }
-                Post post = studentService.createPost(id, postDTO.getDescription(), fileList);
+                Post post = studentService.createPost(student.get().getId(), postDTO.getDescription(), fileList);
                 CreatedPostDto createPostDTO = CreatedPostDto.builder()
-                        .creatorId(id)
+                        .creatorId(student.get().getId())
                         .description(postDTO.getDescription())
                         .postId(post.getId())
                         .urlsPhoto(post.getUrlPhoto())
@@ -170,9 +178,9 @@ public class StudentControllers {
     }
 
 
-    @DeleteMapping("{id}/requests/{requestId}")
-    public ResponseEntity<Void> cancelRequest(@PathVariable Long id, @PathVariable Long requestId) {
-        Optional<Student> student = studentService.getStudentById(id);
+    @DeleteMapping("requests/{requestId}")
+    public ResponseEntity<Void> cancelRequest(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long requestId) {
+        Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         Optional<Request> request = requestService.getRequestById(requestId);
         if (student.isPresent() && request.isPresent()) {
             studentService.cancelRequest(request.get(), student.get());
@@ -181,19 +189,21 @@ public class StudentControllers {
         return ResponseEntity.notFound().build();
     }
 
-//    //    TODO Нужны DTO с контактами и без для ментора
-//    @GetMapping("{id}/mentor/{mentorId}")
-//    public ResponseEntity<?> getMentor(@PathVariable Long id, @PathVariable Long mentorId) {
-//        Optional<Student> student = studentService.getStudentById(id);
-//        Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
-//        if (student.isPresent() && mentor.isPresent()) {
-//            if (requestService.getRequestByMentorAndStudent(mentorId, id).equals(RequestState.ACCEPTED)) {
-//                return new ResponseEntity<>.ok(MentorDto, HttpStatus.OK);
-//            }
-//            return new ResponseEntity<>.ok(MentorDtoWithoutContact, HttpStatus.OK);
-//        }
-//        return ResponseEntity.notFound().build();
-//    }
+    @GetMapping("{id}/mentor/{mentorId}")
+    public ResponseEntity<?> getMentor(@PathVariable Long id, @PathVariable Long mentorId) {
+        Optional<Student> student = studentService.getStudentById(id);
+        Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
+        if (student.isPresent() && mentor.isPresent()) {
+            Mentor mentorDto = mentor.get();
+            RequestState request = requestService.getRequestByMentorAndStudent(mentorId, id);
+            if (!request.equals(RequestState.ACCEPTED)) {
+                mentorDto.setEmail(null);
+                mentorDto.setTelegram(null);
+            }
+            return new ResponseEntity<>(mentorAssembler.mapToMentorDTO(mentorDto), HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
 
 

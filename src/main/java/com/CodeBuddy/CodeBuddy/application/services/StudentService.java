@@ -18,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +37,9 @@ public class StudentService implements UserDetailsService {
     private final MentorRepository mentorRepository;
 
     public StudentService(StudentRepository studentRepository, @Lazy MentorService mentorService,
-                          RequestService requestService, PostService postService, CommentService commentService, GoogleDriveService googleDriveService, PasswordEncoder passwordEncoder, MentorRepository mentorRepository, MentorRepository mentorRepository1) {
+                          RequestService requestService, PostService postService,
+                          CommentService commentService, GoogleDriveService googleDriveService,
+                          @Lazy PasswordEncoder passwordEncoder, MentorRepository mentorRepository1) {
         this.studentRepository = studentRepository;
         this.mentorService = mentorService;
         this.requestService = requestService;
@@ -120,7 +121,7 @@ public class StudentService implements UserDetailsService {
      * @param studentId
      * @param description
      */
-    public Post createPost(Long studentId, String description, List<File> files) throws IOException {
+    public Post createPost(Long studentId, String description, List<File> files) {
         Optional<Student> student = getStudentById(studentId);
         if (student.isPresent()) {
             Post post = new Post();
@@ -132,11 +133,8 @@ public class StudentService implements UserDetailsService {
             }
             log.info("Пост созданный учеником c id={} передан на создание", studentId);
             return postService.createPost(post);
-
-        } else {
-            log.info("Ошибка создания поста");
-            throw new RuntimeException();
         }
+        return null;
     }
 
     /**
@@ -145,7 +143,7 @@ public class StudentService implements UserDetailsService {
      * @param files - список файлов
      * @return список ссылок
      */
-    public List<String> addPhotoToPost(List<File> files) throws IOException {
+    public List<String> addPhotoToPost(List<File> files) {
         List<String> urls = new ArrayList<>(3);
         for (File file : files) {
             urls.add(googleDriveService.uploadImageToDrive(file));
@@ -207,10 +205,10 @@ public class StudentService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Student student = studentRepository.findByEmail(email);
-        if (student != null) {
+        Optional<Student> student = studentRepository.findByEmail(email);
+        if (student.isPresent()) {
             log.info("Найден ученик по данному email");
-            return student;
+            return student.get();
         } else {
             Mentor mentor = mentorRepository.getMentorByEmail(email);
             if (mentor != null) {
@@ -219,5 +217,9 @@ public class StudentService implements UserDetailsService {
             }
         }
         return null;
+    }
+
+    public Optional<Student> findStudentByEmail(String email) {
+        return studentRepository.findByEmail(email);
     }
 }

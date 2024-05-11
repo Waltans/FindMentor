@@ -3,10 +3,8 @@ package com.CodeBuddy.CodeBuddy.extern.configuration;
 
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -14,7 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -24,8 +21,7 @@ public class SecurityConfig {
 
     private final StudentService studentService;
 
-    @Autowired
-    public SecurityConfig(@Lazy StudentService studentService) {
+    public SecurityConfig(StudentService studentService) {
         this.studentService = studentService;
     }
 
@@ -34,9 +30,11 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeHttp -> {
-                    authorizeHttp.requestMatchers("/mentor/create").permitAll();
-                    authorizeHttp.requestMatchers("/students").permitAll();
+                    authorizeHttp.requestMatchers("/").permitAll();
+                    authorizeHttp.requestMatchers("/mentor/create").anonymous();
+                    authorizeHttp.requestMatchers("/students").anonymous();
                     authorizeHttp.requestMatchers("/students/**").authenticated();
+                    authorizeHttp.requestMatchers("/students/profile").authenticated();
                     authorizeHttp.requestMatchers("/mentor/**").authenticated();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
@@ -53,7 +51,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

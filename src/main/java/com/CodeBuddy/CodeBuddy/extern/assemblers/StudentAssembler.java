@@ -2,6 +2,7 @@ package com.CodeBuddy.CodeBuddy.extern.assemblers;
 
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.CreateStudentDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.StudentDtoWithContact;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.StudentDtoWithoutContact;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,5 +21,9 @@ public class StudentAssembler {
 
     public StudentDtoWithoutContact convertToDtoWithoutContact(Student student) {
         return modelMapper.map(student, StudentDtoWithoutContact.class);
+    }
+
+    public StudentDtoWithContact convertToDtoWithContact(Student student) {
+        return modelMapper.map(student, StudentDtoWithContact.class);
     }
 }
