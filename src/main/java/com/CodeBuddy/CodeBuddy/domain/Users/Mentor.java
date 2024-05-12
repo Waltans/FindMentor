@@ -5,6 +5,7 @@ import com.CodeBuddy.CodeBuddy.domain.Request;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
@@ -69,7 +70,7 @@ public class Mentor implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return AuthorityUtils.createAuthorityList( "ROLE_MENTOR");
     }
 
     @Override

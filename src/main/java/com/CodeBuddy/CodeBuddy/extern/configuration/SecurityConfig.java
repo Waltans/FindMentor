@@ -31,10 +31,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeHttp -> {
                     authorizeHttp.requestMatchers("/").permitAll();
-                    authorizeHttp.requestMatchers("/mentor/create").anonymous();
+                    authorizeHttp.requestMatchers("/mentors").anonymous();
                     authorizeHttp.requestMatchers("/students").anonymous();
-                    authorizeHttp.requestMatchers("/students/**").authenticated();
-                    authorizeHttp.requestMatchers("/mentor/**").authenticated();
+                    authorizeHttp.requestMatchers("/students/**").hasAnyAuthority("ROLE_STUDENT", "ROLE_MENTOR");
+                    authorizeHttp.requestMatchers("/mentors/**").authenticated();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
                 .build();
