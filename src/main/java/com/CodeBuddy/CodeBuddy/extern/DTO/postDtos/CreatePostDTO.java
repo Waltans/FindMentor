@@ -1,10 +1,9 @@
-package com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos;
+package com.CodeBuddy.CodeBuddy.extern.DTO.postDtos;
 
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;

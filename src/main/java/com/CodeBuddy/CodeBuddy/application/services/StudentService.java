@@ -56,9 +56,14 @@ public class StudentService implements UserDetailsService {
      * @param student
      */
     public void saveStudent(Student student) {
-        student.setPassword(passwordEncoder.encode(student.getPassword()));
-        studentRepository.save(student);
-        log.info("Ученик с id = {} сохранен в базу данных", student.getId());
+        String email = student.getEmail();
+        if (mentorRepository.getMentorByEmail(email) == null && findStudentByEmail(email).isEmpty()) {
+            student.setPassword(passwordEncoder.encode(student.getPassword()));
+            studentRepository.save(student);
+            log.info("Ученик с id = {} сохранен в базу данных", student.getId());
+        } else {
+            log.info("Email already exists");
+        }
     }
 
     /**

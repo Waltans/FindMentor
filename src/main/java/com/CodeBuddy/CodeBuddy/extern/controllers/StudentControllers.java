@@ -9,8 +9,8 @@ import com.CodeBuddy.CodeBuddy.domain.Request;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
-import com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos.CreatePostDTO;
-import com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos.CreatedPostDto;
+import com.CodeBuddy.CodeBuddy.extern.DTO.postDtos.CreatePostDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.postDtos.CreatedPostDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.*;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.MentorAssembler;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.StudentAssembler;
@@ -71,7 +71,7 @@ public class StudentControllers {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("profile")
+    @GetMapping("accounts")
     public ResponseEntity<StudentDtoWithContact> profile(@AuthenticationPrincipal UserDetails userDetails) {
         Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         if (student.isPresent()) {
@@ -82,7 +82,7 @@ public class StudentControllers {
     }
 
 
-    @PutMapping("settings")
+    @PutMapping("accounts/settings")
     public ResponseEntity<Void> updateStudentInformation(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody StudentUpdateInfoDTO updateInfoDTO) {
         if (updateInfoDTO == null) {
             return ResponseEntity.badRequest().build();
@@ -98,7 +98,7 @@ public class StudentControllers {
         }
     }
 
-    @PutMapping("photo")
+    @PutMapping("accounts/photo")
     public ResponseEntity<Void> updatePhoto(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("image") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -112,10 +112,9 @@ public class StudentControllers {
         } else return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("security")
+    @PutMapping("accounts/security")
     public ResponseEntity<Void> updatePassword(@AuthenticationPrincipal UserDetails userDetails,
                                                @Valid @RequestBody UpdateSecurityStudent securityStudent) {
-
         Optional<Student> studentById = studentService.findStudentByEmail(userDetails.getUsername());
         if (studentById.isPresent()) {
             if (bCryptPasswordEncoder.matches(securityStudent.getPassword(), studentById.get().getPassword())) {
@@ -129,10 +128,10 @@ public class StudentControllers {
     }
 
 
-    @PostMapping("{id}/requests/mentors/{mentorId}")
-    public ResponseEntity<RequestDTO> sendRequest(@PathVariable Long id, @PathVariable Long mentorId,
+    @PostMapping("requests/mentors/{mentorId}")
+    public ResponseEntity<RequestDTO> sendRequest(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long mentorId,
                                                   @Valid @RequestBody StudentCreateRequest request) {
-        Optional<Student> student = studentService.getStudentById(id);
+        Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
         if (student.isPresent() && mentor.isPresent()) {
             if (request.getDescription() != null) {

@@ -36,7 +36,7 @@ public class MentorController {
         this.mentorAssembler = mentorAssembler;
     }
 
-    @PostMapping("/create")
+    @PostMapping()
     public ResponseEntity<String> create(@RequestBody @Valid MentorDTO mentorDTO){
         if(mentorService.saveMentor(mentorAssembler.mapToMentor(mentorDTO)))
             return ResponseEntity.ok().build();

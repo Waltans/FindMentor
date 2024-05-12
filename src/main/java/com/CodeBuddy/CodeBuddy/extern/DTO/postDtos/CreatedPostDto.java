@@ -1,4 +1,4 @@
-package com.CodeBuddy.CodeBuddy.extern.DTO.PostDtos;
+package com.CodeBuddy.CodeBuddy.extern.DTO.postDtos;
 
 import lombok.Builder;
 import lombok.Data;

@@ -34,7 +34,6 @@ public class SecurityConfig {
                     authorizeHttp.requestMatchers("/mentor/create").anonymous();
                     authorizeHttp.requestMatchers("/students").anonymous();
                     authorizeHttp.requestMatchers("/students/**").authenticated();
-                    authorizeHttp.requestMatchers("/students/profile").authenticated();
                     authorizeHttp.requestMatchers("/mentor/**").authenticated();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
