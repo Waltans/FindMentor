@@ -1,13 +1,14 @@
-package com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos;
-
+package com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos;
 
 import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
-public class StudentUpdateInfoDTO {
+public class MentorUpdateInfoDTO {
 
     @Email
     private String email;
@@ -16,6 +17,6 @@ public class StudentUpdateInfoDTO {
     private String telegram;
 
     private String description;
+
+    private List<Long> keywords = new ArrayList<>();
 }
-
-

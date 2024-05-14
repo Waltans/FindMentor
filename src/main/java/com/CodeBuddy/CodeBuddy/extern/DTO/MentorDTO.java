@@ -10,9 +10,6 @@ import java.util.List;
 @Data
 public class MentorDTO {
 
-    @NotNull(message = "Поле идентификатора не может быть пустым")
-    private Long id;
-
     @NotNull(message = "Поле имени не может быть пустым")
     private String firstName;
 

@@ -57,7 +57,7 @@ public class StudentService implements UserDetailsService {
      */
     public void saveStudent(Student student) {
         String email = student.getEmail();
-        if (mentorRepository.getMentorByEmail(email) == null && findStudentByEmail(email).isEmpty()) {
+        if (mentorRepository.findByEmail(email).isEmpty() && findStudentByEmail(email).isEmpty()) {
             student.setPassword(passwordEncoder.encode(student.getPassword()));
             studentRepository.save(student);
             log.info("Ученик с id = {} сохранен в базу данных", student.getId());
@@ -215,8 +215,8 @@ public class StudentService implements UserDetailsService {
             log.info("Найден ученик по данному email");
             return student.get();
         } else {
-            Mentor mentor = mentorRepository.getMentorByEmail(email);
-            if (mentor != null) {
+            Optional<Mentor> mentor = mentorRepository.findByEmail(email);
+            if (mentor.isPresent()) {
                 log.info("Найден ментор по данному email");
                 return mentorService.loadUserByUsername(email);
             }

@@ -3,134 +3,150 @@ package com.CodeBuddy.CodeBuddy.extern.controllers;
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
-import com.CodeBuddy.CodeBuddy.extern.DTO.MentorDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorDtoWithContact;
+import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorDtoWithoutContact;
+import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorUpdateInfoDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.CreateStudentDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.UpdateSecurityStudent;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.MentorAssembler;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/mentors")
+@RequestMapping("mentors")
 public class MentorController {
 
     private final MentorService mentorService;
-    private final MentorAssembler mentorAssembler;
+    private final MentorAssembler assembler;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public MentorController(MentorService mentorService, MentorAssembler mentorAssembler) {
+    public MentorController(MentorService mentorService, MentorAssembler assembler, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.mentorService = mentorService;
-        this.mentorAssembler = mentorAssembler;
+        this.assembler = assembler;
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
     @PostMapping()
-    public ResponseEntity<String> create(@RequestBody @Valid MentorDTO mentorDTO){
-        if(mentorService.saveMentor(mentorAssembler.mapToMentor(mentorDTO)))
-            return ResponseEntity.ok().build();
-        return ResponseEntity.badRequest().body("Пользователя с таким ID уже существует");
+    public ResponseEntity<CreateStudentDTO> create(@RequestBody @Valid CreateStudentDTO dto){
+        Mentor mentor = Mentor.builder().firstName(dto.getFirstName()).lastName(dto.getLastName())
+                        .email(dto.getEmail()).password(dto.getPassword()).build();
+        if(dto.getPassword().equals(dto.getRepeatPassword())){
+            mentorService.saveMentor(mentor);
+            return new ResponseEntity<>(dto, HttpStatus.CREATED);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<MentorDTO> getMentorById(@PathVariable Long id){
+    @GetMapping("{id}")
+    public ResponseEntity<MentorDtoWithoutContact> getMentor(@PathVariable Long id){
         Optional<Mentor> optionalMentor = mentorService.getMentorById(id);
         if (optionalMentor.isPresent()) {
             Mentor mentor = optionalMentor.get();
-            mentor.setEmail(null);
-            mentor.setTelegram(null);
-            return new ResponseEntity<>(mentorAssembler.mapToMentorDTO(mentor), HttpStatus.FOUND);
+            return new ResponseEntity<>(assembler.convertToDtoWithoutContact(mentor), HttpStatus.FOUND);
         }
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/update-em-tg/{id}")
-    public ResponseEntity<String> updateEmailAndTelegram(@PathVariable("id") Long id,
-                                                       @RequestParam("email") String email,
-                                                       @RequestParam("telegram")  String telegram){
-
-        if(mentorService.updateEmailAndTelegram(id, email, telegram))
-            return ResponseEntity.ok().build();
-        return ResponseEntity.badRequest().body("Пользователя с таким ID уже существует");
+    @GetMapping("/accounts")
+    public ResponseEntity<MentorDtoWithContact> profile(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<Mentor> mentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        if (mentor.isPresent()) {
+            MentorDtoWithContact mentorDTO = assembler.convertToDtoWithContact(mentor.get());
+            return new ResponseEntity<>(mentorDTO, HttpStatus.OK);
+        }
+        return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/update-photo/{id}")
-    public ResponseEntity<String> updatePhoto(@PathVariable("id") Long id,
+
+    @PutMapping("accounts/settings")
+    public ResponseEntity<Void> updateMentorInformation(@AuthenticationPrincipal UserDetails userDetails,
+                                                          @RequestBody MentorUpdateInfoDTO mentorDTO){
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        if(optionalMentor.isPresent()){
+            mentorService.updateInformation(optionalMentor.get(), mentorDTO.getEmail(), mentorDTO.getTelegram(),
+                    mentorDTO.getDescription(), mentorDTO.getKeywords());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PutMapping("accounts/photo")
+    public ResponseEntity<String> updatePhoto(@AuthenticationPrincipal UserDetails userDetails,
                                               @RequestParam("image") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest().build();
         }
-        File tempFile = File.createTempFile("temp", null);
-        file.transferTo(tempFile);
-        mentorService.updatePhoto(id, tempFile);
-        return ResponseEntity.ok().build();
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        if (optionalMentor.isPresent()) {
+            File tempFile = File.createTempFile("temp", null);
+            file.transferTo(tempFile);
+            mentorService.updatePhoto(optionalMentor.get().getId(), tempFile);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/{page}")
-    public ResponseEntity<Page<MentorDTO>> getAllMentor(@PathVariable("page") int page){
+    @PutMapping("accounts/security")
+    public ResponseEntity<Void> updatePassword(@AuthenticationPrincipal UserDetails userDetails,
+                                               @Valid @RequestBody UpdateSecurityStudent securityStudent) {
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        if (optionalMentor.isPresent()) {
+            if (bCryptPasswordEncoder.matches(securityStudent.getPassword(), optionalMentor.get().getPassword())) {
+                mentorService.updateSecurity(optionalMentor.get(), securityStudent.getNewPassword(),
+                        securityStudent.getEmail());
+                return ResponseEntity.ok().build();
+            }
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MentorDtoWithoutContact>> getAllMentor(){
         List<Mentor> mentorList = mentorService.getAllMentors();
-        Page<MentorDTO> mentorPage = getMentorDTOS(page, mentorList);
-
-        return new ResponseEntity<>(mentorPage, HttpStatus.OK);
+        return new ResponseEntity<>(mentorList.stream().map(assembler::convertToDtoWithoutContact).toList(), HttpStatus.OK);
     }
 
-    @PutMapping("/add-keyword/{mentorId}/{keywordId}")
-    public ResponseEntity<String> addKeyword(@PathVariable("keywordId") Long keywordId,
-                                             @PathVariable("mentorId") Long mentorId){
-        if(mentorService.addKeyword(mentorId, keywordId))
-            return ResponseEntity.ok().build();
-        return ResponseEntity.badRequest().build();
-    }
 
-    @DeleteMapping("/add-keyword/{mentorId}/{keywordId}")
-    public ResponseEntity<String> removeKeyword(@PathVariable("keywordId") Long keywordId,
-                                             @PathVariable("mentorId") Long mentorId){
-        if(mentorService.removeKeyword(mentorId, keywordId))
-            return ResponseEntity.ok().build();
-        return ResponseEntity.badRequest().build();
-    }
-
-    @GetMapping("/by-keywords/{page}")
-    public ResponseEntity<Page<MentorDTO>> getAllMentorsByKeywords(@PathVariable("page") int page,
-                                                             @RequestParam("keywordsId") List<Long> keywordsId){
+    @GetMapping("keywords")
+    public ResponseEntity<List<MentorDtoWithoutContact>> getAllMentorsByKeywords(@RequestParam("keywordsId") List<Long> keywordsId){
         List<Mentor> mentorList = mentorService.getMentorsByKeywords(keywordsId);
-        Page<MentorDTO> mentorPage = getMentorDTOS(page, mentorList);
-
-        return new ResponseEntity<>(mentorPage, HttpStatus.OK);
+        return new ResponseEntity<>(mentorList.stream().map(assembler::convertToDtoWithoutContact).toList(), HttpStatus.OK);
     }
 
-    @PutMapping("/request")
-    public ResponseEntity<String> respondToRequest(Long requestId, @RequestParam("request") String stringRequestState){
-        try {
-            RequestState requestState = RequestState.valueOf(stringRequestState);
-            mentorService.answerToRequest(requestId, requestState);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    @PutMapping("requests")
+    public ResponseEntity<String> respondToRequest(@AuthenticationPrincipal UserDetails userDetails,
+                                                   Long requestId, @RequestParam("request") String stringRequestState){
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        if (optionalMentor.isPresent() && Objects.equals(optionalMentor.get().getId(), requestId)){
+            try {
+                RequestState requestState = RequestState.valueOf(stringRequestState);
+                mentorService.answerToRequest(requestId, requestState);
+            } catch (IllegalArgumentException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        else
+            return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
     }
 
-    private Page<MentorDTO> getMentorDTOS(int page, List<Mentor> mentorList) {
-        List<MentorDTO> mentorDTOList = mentorList.stream().map(mentorAssembler::mapToMentorDTO).toList();
-        mentorList.forEach(mentor -> {
-            mentor.setTelegram(null);
-            mentor.setEmail(null);
-        });
-
-        Pageable pageable = PageRequest.of(page, mentorDTOList.size());
-        return new PageImpl<>(mentorDTOList, pageable, mentorDTOList.size());
-    }
 
 
 }

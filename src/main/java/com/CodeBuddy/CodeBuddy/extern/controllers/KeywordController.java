@@ -2,7 +2,6 @@ package com.CodeBuddy.CodeBuddy.extern.controllers;
 
 
 import com.CodeBuddy.CodeBuddy.application.services.KeywordService;
-import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.extern.DTO.KeywordDTO;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.KeywordAssembler;
 import jakarta.validation.Valid;

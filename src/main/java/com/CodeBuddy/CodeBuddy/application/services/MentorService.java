@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,16 +32,18 @@ public class MentorService implements UserDetailsService {
     private final GoogleDriveService googleDriveService;
     private final KeywordService keywordService;
     private final PasswordEncoder passwordEncoder;
+    private final StudentService studentService;
 
     @Autowired
     public MentorService(MentorRepository mentorRepository, RequestService requestService,
                          KeywordService keywordService, GoogleDriveService googleDriveService,
-                         @Lazy PasswordEncoder passwordEncoder) {
+                         @Lazy PasswordEncoder passwordEncoder, StudentService studentService) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
         this.googleDriveService = googleDriveService;
         this.keywordService = keywordService;
         this.passwordEncoder = passwordEncoder;
+        this.studentService = studentService;
     }
 
 
@@ -51,15 +52,14 @@ public class MentorService implements UserDetailsService {
      *
      * @param mentor
      */
-    public boolean saveMentor(Mentor mentor) {
-        if (!mentorRepository.findAll().stream().map(Mentor::getId).toList().contains(mentor.getId())) {
+    public void saveMentor(Mentor mentor) {
+        if (mentorRepository.findByEmail(mentor.getEmail()).isEmpty() &&
+            studentService.findStudentByEmail(mentor.getEmail()).isEmpty()){
             mentor.setPassword(passwordEncoder.encode(mentor.getPassword()));
             mentorRepository.save(mentor);
             log.info("Ментор с id = {} сохранен в базу", mentor.getId());
-            return true;
-        }
-        log.info("Ментор с id = {} уже существует", mentor.getId());
-        return false;
+        }else
+            log.info("Пользователь с id = {} уже существует", mentor.getId());
     }
 
     /**
@@ -79,22 +79,20 @@ public class MentorService implements UserDetailsService {
     }
 
     /**
-     * Обновление почты и телеграма ментора
-     *
-     * @param mentorId
-     * @param newEmail
+     * Метод обновления информации о менторе
+     * @param mentor ментор
+     * @param newEmail новый email
+     * @param newTelegram новый telegram
+     * @param description новое описание
+     * @param keywordsId список новых ключевых слов
      */
-    public boolean updateEmailAndTelegram(Long mentorId, String newEmail, String newTelegram) {
-        Optional<Mentor> optionalMentor = getMentorById(mentorId);
-        if (optionalMentor.isPresent()) {
-            Mentor mentor = optionalMentor.get();
-            mentor.setEmail(newEmail);
-            mentor.setTelegram(newTelegram);
-            mentorRepository.save(mentor);
-            log.info("Пользователь с id ={} обновил почту", mentorId);
-            return true;
-        }
-        return false;
+    public void updateInformation(Mentor mentor, String newEmail, String newTelegram, String description, List<Long> keywordsId) {
+        mentor.setEmail(newEmail);
+        mentor.setTelegram(newTelegram);
+        mentor.setDescription(description);
+        mentor.setKeywords(keywordService.getAllKeywordsById(keywordsId));
+        mentorRepository.save(mentor);
+        log.info("Данные ментора с id={} изменилась ", mentor.getId());
     }
 
     /**
@@ -161,6 +159,13 @@ public class MentorService implements UserDetailsService {
         return false;
     }
 
+    public void updateSecurity(Mentor mentor, String newPassword, String newEmail) {
+        if (newPassword != null) mentor.setPassword(newPassword);
+        if (mentor.getEmail() != null) mentor.setEmail(newEmail);
+        mentorRepository.save(mentor);
+        log.info("Пользователь c id={} изменил пароль и почту", mentor.getId());
+    }
+
     /**
      * Метод получения менторов с определенными ключевыми словами
      *
@@ -169,7 +174,7 @@ public class MentorService implements UserDetailsService {
      */
     public List<Mentor> getMentorsByKeywords(List<Long> keywordId) {
         List<Keyword> keywords = keywordService.getAllKeywordsById(keywordId);
-        List<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords);
+        List<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(Collections.singleton(keywords));
         log.info("Получен список менторов с определенными ключевыми словами");
         return mentorPage;
     }
@@ -195,7 +200,13 @@ public class MentorService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return mentorRepository.getMentorByEmail(email);
+        return mentorRepository.findByEmail(email).get();
     }
+
+    public Optional<Mentor> findMentorByEmail(String email) {
+        return mentorRepository.findByEmail(email);
+    }
+
+
 
 }

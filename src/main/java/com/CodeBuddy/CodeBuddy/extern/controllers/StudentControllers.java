@@ -196,10 +196,9 @@ public class StudentControllers {
             Mentor mentorDto = mentor.get();
             RequestState request = requestService.getRequestByMentorAndStudent(mentorId, id);
             if (!request.equals(RequestState.ACCEPTED)) {
-                mentorDto.setEmail(null);
-                mentorDto.setTelegram(null);
+                return new ResponseEntity<>(mentorAssembler.convertToDtoWithoutContact(mentorDto), HttpStatus.OK);
             }
-            return new ResponseEntity<>(mentorAssembler.mapToMentorDTO(mentorDto), HttpStatus.OK);
+            return new ResponseEntity<>(mentorAssembler.convertToDtoWithContact(mentorDto), HttpStatus.OK);
         }
         return ResponseEntity.notFound().build();
     }
