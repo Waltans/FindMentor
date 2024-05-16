@@ -202,7 +202,7 @@ public class StudentService implements UserDetailsService {
     }
 
     public void updateSecurity(Student student, String newPassword, String newEmail) {
-        if (newPassword != null) student.setPassword(newPassword);
+        if (newPassword != null) student.setPassword(passwordEncoder.encode(newPassword));
         if (student.getEmail() != null) student.setEmail(newEmail);
         studentRepository.save(student);
         log.info("Пользователь c id={} изменил пароль и почту", student.getId());

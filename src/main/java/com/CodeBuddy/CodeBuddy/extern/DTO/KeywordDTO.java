@@ -10,9 +10,6 @@ import java.util.List;
 public class KeywordDTO {
 
     @NotNull
-    private Long id;
-
-    @NotNull
     private String keyword;
 
     private List<Long> mentorsId = new ArrayList<>();

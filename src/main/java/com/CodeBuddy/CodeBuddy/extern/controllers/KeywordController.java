@@ -3,6 +3,8 @@ package com.CodeBuddy.CodeBuddy.extern.controllers;
 
 import com.CodeBuddy.CodeBuddy.application.services.KeywordService;
 import com.CodeBuddy.CodeBuddy.extern.DTO.KeywordDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.keywordDtos.CreatedKeywordDto;
+import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.CreateStudentDTO;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.KeywordAssembler;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,23 +26,17 @@ public class KeywordController {
         this.keywordAssembler = keywordAssembler;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<Void> createKeyword(@RequestBody @Valid KeywordDTO keywordDTO) {
-        if (keywordService.addKeyword(keywordAssembler.mapToKeyword(keywordDTO)))
+    @PostMapping
+    public ResponseEntity<Void> createKeyword(@RequestBody @Valid CreatedKeywordDto createdKeywordDto) {
+        if (keywordService.addKeyword(keywordAssembler.mapToKeyword(createdKeywordDto)))
             return ResponseEntity.ok().build();
         return ResponseEntity.badRequest().build();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity<Void> deleteKeyword(@PathVariable("id") Long id) {
         keywordService.removeKeyword(id);
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<List<KeywordDTO>> getAllKeywords() {
-        List<KeywordDTO> keywordDTOS = keywordService.getAllKeywords().stream().map(keywordAssembler::mapToKeywordDTO).toList();
-        return ResponseEntity.ok(keywordDTOS);
     }
 
 

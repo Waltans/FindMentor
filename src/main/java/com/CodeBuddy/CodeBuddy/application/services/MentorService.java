@@ -109,6 +109,25 @@ public class MentorService implements UserDetailsService {
         }, () -> log.info("Не удалось обновить фотографию у пользователя с id = {}", mentorId));
     }
 
+
+    /**
+     * Метод удаления ключевого слова
+     *
+     * @param mentorId  идентификатор ментора
+     * @param keywordsId идентификаторы ключевых слов
+     */
+    public void changeKeywords(Long mentorId, List<Long> keywordsId) {
+        Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
+        List<Keyword> keywords = keywordService.getAllKeywordsById(keywordsId);
+        if (mentorOptional.isPresent()) {
+            Mentor mentor = mentorOptional.get();
+            mentor.setKeywords(keywords);
+            mentorRepository.save(mentor);
+            log.info("Ключевое слова изменены у ментора с id = {}", mentorId);
+        }else
+            log.info("Ключевое слова не изменены у ментора с id = {}", mentorId);
+    }
+
     /**
      * Метод для получения всех менторов
      *
@@ -119,48 +138,9 @@ public class MentorService implements UserDetailsService {
         return mentorRepository.findAll();
     }
 
-    /**
-     * Метод для добавления ключевых слов
-     *
-     * @param mentorId  идентификатор ментора
-     * @param keywordId идентификатор ключевого слова
-     */
-    public boolean addKeyword(Long mentorId, Long keywordId) {
-        Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
-        Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
-        if (keywordOptional.isPresent() && mentorOptional.isPresent()) {
-            Mentor mentor = mentorOptional.get();
-            mentor.getKeywords().add(keywordOptional.get());
-            mentorRepository.save(mentor);
-            log.info("Ментору с id = {} добавлено ключевое слово с id = {}", mentorId, keywordId);
-            return true;
-        }
-        log.info("Ментору с id = {} не добавлено ключевое слово с id = {}", mentorId, keywordId);
-        return false;
-    }
-
-    /**
-     * Метод удаления ключевого слова
-     *
-     * @param mentorId  идентификатор ментора
-     * @param keywordId идентификатор ключевого слова
-     */
-    public boolean removeKeyword(Long mentorId, Long keywordId) {
-        Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
-        Optional<Keyword> keywordOptional = keywordService.getById(keywordId);
-        if (keywordOptional.isPresent() && mentorOptional.isPresent()) {
-            Mentor mentor = mentorOptional.get();
-            mentor.getKeywords().remove(keywordOptional.get());
-            mentorRepository.save(mentor);
-            log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
-            return true;
-        }
-        log.info("Ключевое слово с id = {} удалено у ментора с id = {}", mentorId, keywordId);
-        return false;
-    }
 
     public void updateSecurity(Mentor mentor, String newPassword, String newEmail) {
-        if (newPassword != null) mentor.setPassword(newPassword);
+        if (newPassword != null) mentor.setPassword(passwordEncoder.encode(newPassword));
         if (mentor.getEmail() != null) mentor.setEmail(newEmail);
         mentorRepository.save(mentor);
         log.info("Пользователь c id={} изменил пароль и почту", mentor.getId());
@@ -174,7 +154,7 @@ public class MentorService implements UserDetailsService {
      */
     public List<Mentor> getMentorsByKeywords(List<Long> keywordId) {
         List<Keyword> keywords = keywordService.getAllKeywordsById(keywordId);
-        List<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(Collections.singleton(keywords));
+        List<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords);
         log.info("Получен список менторов с определенными ключевыми словами");
         return mentorPage;
     }
@@ -185,11 +165,14 @@ public class MentorService implements UserDetailsService {
         if (optionalRequest.isPresent()) {
             Request request = optionalRequest.get();
             request.setRequestState(requestState);
+            Mentor mentor = request.getMentor();
+            Student student = request.getStudent();
             if (request.getRequestState().equals(RequestState.ACCEPTED)) {
-                Mentor mentor = request.getMentor();
-                Student student = request.getStudent();
                 mentor.getAcceptedStudent().add(request.getStudent());
                 student.getAcceptedMentor().add(request.getMentor());
+            }else {
+                mentor.getAcceptedStudent().remove(request.getStudent());
+                student.getAcceptedMentor().remove(request.getMentor());
             }
             requestService.saveRequest(request);
             log.info("Статус запроса с id={} изменен на {}", requestId, requestState.name());

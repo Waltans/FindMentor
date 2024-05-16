@@ -1,14 +1,20 @@
 package com.CodeBuddy.CodeBuddy.extern.controllers;
 
+import com.CodeBuddy.CodeBuddy.application.services.KeywordService;
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
+import com.CodeBuddy.CodeBuddy.extern.DTO.keywordDtos.GetKeywordsAndIdDto;
+import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorAndKeywordsDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorDtoWithContact;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorDtoWithoutContact;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorUpdateInfoDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.CreateStudentDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.RequestDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.UpdateSecurityStudent;
+import com.CodeBuddy.CodeBuddy.extern.assemblers.KeywordAssembler;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.MentorAssembler;
+import com.CodeBuddy.CodeBuddy.extern.assemblers.RequestAssembler;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +38,20 @@ import java.util.Optional;
 public class MentorController {
 
     private final MentorService mentorService;
-    private final MentorAssembler assembler;
+    private final MentorAssembler mentorAssembler;
+    private final KeywordAssembler keywordAssembler;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final KeywordService keywordService;
+    private final RequestAssembler requestAssembler;
 
     @Autowired
-    public MentorController(MentorService mentorService, MentorAssembler assembler, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public MentorController(MentorService mentorService, MentorAssembler mentorAssembler, KeywordAssembler keywordAssembler, BCryptPasswordEncoder bCryptPasswordEncoder, KeywordService keywordService, RequestAssembler requestAssembler) {
         this.mentorService = mentorService;
-        this.assembler = assembler;
+        this.mentorAssembler = mentorAssembler;
+        this.keywordAssembler = keywordAssembler;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.keywordService = keywordService;
+        this.requestAssembler = requestAssembler;
     }
 
     @PostMapping()
@@ -58,16 +70,16 @@ public class MentorController {
         Optional<Mentor> optionalMentor = mentorService.getMentorById(id);
         if (optionalMentor.isPresent()) {
             Mentor mentor = optionalMentor.get();
-            return new ResponseEntity<>(assembler.convertToDtoWithoutContact(mentor), HttpStatus.FOUND);
+            return new ResponseEntity<>(mentorAssembler.convertToDtoWithoutContact(mentor), HttpStatus.FOUND);
         }
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/accounts")
+    @GetMapping("accounts")
     public ResponseEntity<MentorDtoWithContact> profile(@AuthenticationPrincipal UserDetails userDetails) {
         Optional<Mentor> mentor = mentorService.findMentorByEmail(userDetails.getUsername());
         if (mentor.isPresent()) {
-            MentorDtoWithContact mentorDTO = assembler.convertToDtoWithContact(mentor.get());
+            MentorDtoWithContact mentorDTO = mentorAssembler.convertToDtoWithContact(mentor.get());
             return new ResponseEntity<>(mentorDTO, HttpStatus.OK);
         }
         return ResponseEntity.notFound().build();
@@ -118,33 +130,53 @@ public class MentorController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MentorDtoWithoutContact>> getAllMentor(){
+    public ResponseEntity<MentorAndKeywordsDto> getAllMentor(){
         List<Mentor> mentorList = mentorService.getAllMentors();
-        return new ResponseEntity<>(mentorList.stream().map(assembler::convertToDtoWithoutContact).toList(), HttpStatus.OK);
+        return getMentorAndKeywordsDtoResponseEntity(mentorList);
     }
 
 
     @GetMapping("keywords")
-    public ResponseEntity<List<MentorDtoWithoutContact>> getAllMentorsByKeywords(@RequestParam("keywordsId") List<Long> keywordsId){
+    public ResponseEntity<MentorAndKeywordsDto> getAllMentorsByKeywords(@RequestParam("keywordsId") List<Long> keywordsId){
         List<Mentor> mentorList = mentorService.getMentorsByKeywords(keywordsId);
-        return new ResponseEntity<>(mentorList.stream().map(assembler::convertToDtoWithoutContact).toList(), HttpStatus.OK);
+        return getMentorAndKeywordsDtoResponseEntity(mentorList);
     }
 
-    @PutMapping("requests")
-    public ResponseEntity<String> respondToRequest(@AuthenticationPrincipal UserDetails userDetails,
-                                                   Long requestId, @RequestParam("request") String stringRequestState){
+    @PutMapping("accounts/keywords")
+    public ResponseEntity<?> changeKeywords(@AuthenticationPrincipal UserDetails userDetails,
+                                             @RequestParam("keywordId") List<Long> keywordsId){
         Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
-        if (optionalMentor.isPresent() && Objects.equals(optionalMentor.get().getId(), requestId)){
-            try {
-                RequestState requestState = RequestState.valueOf(stringRequestState);
-                mentorService.answerToRequest(requestId, requestState);
-            } catch (IllegalArgumentException e) {
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-            }
+        if(optionalMentor.isPresent()){
+            mentorService.changeKeywords(optionalMentor.get().getId(), keywordsId);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @GetMapping("requests")
+    public ResponseEntity<List<RequestDTO>> getAllRequests(@AuthenticationPrincipal UserDetails userDetails){
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        return optionalMentor.map(mentor -> new ResponseEntity<>(mentor.getRequests().stream().map(requestAssembler::mapToRequestDTO).toList(), HttpStatus.OK)).orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+    @PutMapping("requests/{requestId}")
+    public ResponseEntity<?> respondToRequest(@AuthenticationPrincipal UserDetails userDetails
+            , @RequestParam("request") String stringRequestState, @PathVariable Long requestId){
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        if (optionalMentor.isPresent()){
+            RequestState requestState = RequestState.valueOf(stringRequestState);
+            mentorService.answerToRequest(requestId, requestState);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         else
-            return new ResponseEntity<>(HttpStatus.METHOD_NOT_ALLOWED);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    private ResponseEntity<MentorAndKeywordsDto> getMentorAndKeywordsDtoResponseEntity(List<Mentor> mentorList) {
+        List<MentorDtoWithoutContact> mentors = mentorList.stream().map(mentorAssembler::convertToDtoWithoutContact).toList();
+        List<GetKeywordsAndIdDto> keywords = keywordService.getAllKeywords().stream().map(keywordAssembler::mapToGetKeywordAndIdDTO).toList();
+        MentorAndKeywordsDto mentorAndKeywordsDto = new MentorAndKeywordsDto(mentors, keywords);
+        return new ResponseEntity<>(mentorAndKeywordsDto, HttpStatus.OK);
     }
 
 

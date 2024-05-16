@@ -3,6 +3,9 @@ package com.CodeBuddy.CodeBuddy.extern.assemblers;
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.extern.DTO.KeywordDTO;
+import com.CodeBuddy.CodeBuddy.extern.DTO.keywordDtos.CreatedKeywordDto;
+import com.CodeBuddy.CodeBuddy.extern.DTO.keywordDtos.GetKeywordsAndIdDto;
+import com.CodeBuddy.CodeBuddy.extern.DTO.keywordDtos.GetKeywordsDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,25 +23,13 @@ public class KeywordAssembler {
         this.mentorService = mentorService;
     }
 
-    public KeywordDTO mapToKeywordDTO(Keyword keyword) {
-        KeywordDTO keywordDTO = modelMapper.map(keyword, KeywordDTO.class);
-        mapToKeywordIdList(keywordDTO, keyword);
-        return keywordDTO;
+    public GetKeywordsAndIdDto mapToGetKeywordAndIdDTO(Keyword keyword) {
+        return modelMapper.map(keyword, GetKeywordsAndIdDto.class);
 
     }
 
-    public Keyword mapToKeyword(KeywordDTO keywordDTO) {
-        Keyword keyword = modelMapper.map(keywordDTO, Keyword.class);
-        mapToKeywordList(keyword, keywordDTO);
-        return keyword;
+    public Keyword mapToKeyword(CreatedKeywordDto createdKeywordDto) {
+        return modelMapper.map(createdKeywordDto, Keyword.class);
 
-    }
-
-    private void mapToKeywordIdList(KeywordDTO keywordDTO, Keyword keyword){
-        keyword.getMentors().forEach(e -> keywordDTO.getMentorsId().add(e.getId()));
-    }
-
-    private void mapToKeywordList(Keyword keyword, KeywordDTO keywordDTO){
-        keywordDTO.getMentorsId().forEach(e -> keyword.getMentors().add(mentorService.getMentorById(e).get()));
     }
 }

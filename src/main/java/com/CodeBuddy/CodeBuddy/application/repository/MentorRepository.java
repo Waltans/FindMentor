@@ -16,7 +16,7 @@ import java.util.Optional;
 @Repository
 public interface MentorRepository extends JpaRepository<Mentor, Long> {
 
-    List<Mentor> getMentorsByKeywordsIn(Collection<List<Keyword>> keywords);
+    List<Mentor> getMentorsByKeywordsIn(List<Keyword> keywords);
 
     Optional<Mentor> findByEmail(String email);
 }
