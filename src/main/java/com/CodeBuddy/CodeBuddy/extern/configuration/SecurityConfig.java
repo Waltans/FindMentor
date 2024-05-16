@@ -14,6 +14,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractAu
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -30,6 +34,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(httpSecurityCorsConfigurer ->
+                        httpSecurityCorsConfigurer.configurationSource(new UrlBasedCorsConfigurationSource() {
+                            {
+                                CorsConfiguration config = new CorsConfiguration();
+                                config.applyPermitDefaultValues();
+                                config.setAllowCredentials(true);
+                                config.addAllowedOriginPattern("*");
+                                config.setAllowedMethods(Collections.singletonList("*"));
+                                registerCorsConfiguration("/**", config);
+                            }
+                        })
+                )
                 .authorizeHttpRequests(authorizeHttp -> {
                     authorizeHttp.requestMatchers("/").permitAll();
                     authorizeHttp.requestMatchers(HttpMethod.POST,"/mentors").anonymous();
@@ -41,6 +57,9 @@ public class SecurityConfig {
                     authorizeHttp.anyRequest().authenticated();
                 })
                 .formLogin(AbstractAuthenticationFilterConfigurer::permitAll)
+                .logout(logout -> logout
+                        .deleteCookies("JSESSIONID")
+                )
                 .build();
     }
 
