@@ -1,9 +1,7 @@
 package com.CodeBuddy.CodeBuddy.application.services;
 
 import com.CodeBuddy.CodeBuddy.application.repository.MentorRepository;
-import com.CodeBuddy.CodeBuddy.domain.Keyword;
-import com.CodeBuddy.CodeBuddy.domain.Request;
-import com.CodeBuddy.CodeBuddy.domain.RequestState;
+import com.CodeBuddy.CodeBuddy.domain.*;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.util.Collections;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,17 +31,21 @@ public class MentorService implements UserDetailsService {
     private final KeywordService keywordService;
     private final PasswordEncoder passwordEncoder;
     private final StudentService studentService;
+    private final PostService postService;
+    private final CommentService commentService;
 
     @Autowired
     public MentorService(MentorRepository mentorRepository, RequestService requestService,
                          KeywordService keywordService, GoogleDriveService googleDriveService,
-                         @Lazy PasswordEncoder passwordEncoder, StudentService studentService) {
+                         @Lazy PasswordEncoder passwordEncoder, StudentService studentService, PostService postService, CommentService commentService) {
         this.mentorRepository = mentorRepository;
         this.requestService = requestService;
         this.googleDriveService = googleDriveService;
         this.keywordService = keywordService;
         this.passwordEncoder = passwordEncoder;
         this.studentService = studentService;
+        this.postService = postService;
+        this.commentService = commentService;
     }
 
 
@@ -54,11 +56,11 @@ public class MentorService implements UserDetailsService {
      */
     public void saveMentor(Mentor mentor) {
         if (mentorRepository.findByEmail(mentor.getEmail()).isEmpty() &&
-            studentService.findStudentByEmail(mentor.getEmail()).isEmpty()){
+                studentService.findStudentByEmail(mentor.getEmail()).isEmpty()) {
             mentor.setPassword(passwordEncoder.encode(mentor.getPassword()));
             mentorRepository.save(mentor);
             log.info("Ментор с id = {} сохранен в базу", mentor.getId());
-        }else
+        } else
             log.info("Пользователь с id = {} уже существует", mentor.getId());
     }
 
@@ -80,11 +82,12 @@ public class MentorService implements UserDetailsService {
 
     /**
      * Метод обновления информации о менторе
-     * @param mentor ментор
-     * @param newEmail новый email
+     *
+     * @param mentor      ментор
+     * @param newEmail    новый email
      * @param newTelegram новый telegram
      * @param description новое описание
-     * @param keywordsId список новых ключевых слов
+     * @param keywordsId  список новых ключевых слов
      */
     public void updateInformation(Mentor mentor, String newEmail, String newTelegram, String description, List<Long> keywordsId) {
         mentor.setEmail(newEmail);
@@ -113,7 +116,7 @@ public class MentorService implements UserDetailsService {
     /**
      * Метод удаления ключевого слова
      *
-     * @param mentorId  идентификатор ментора
+     * @param mentorId   идентификатор ментора
      * @param keywordsId идентификаторы ключевых слов
      */
     public void changeKeywords(Long mentorId, List<Long> keywordsId) {
@@ -124,7 +127,7 @@ public class MentorService implements UserDetailsService {
             mentor.setKeywords(keywords);
             mentorRepository.save(mentor);
             log.info("Ключевое слова изменены у ментора с id = {}", mentorId);
-        }else
+        } else
             log.info("Ключевое слова не изменены у ментора с id = {}", mentorId);
     }
 
@@ -170,7 +173,7 @@ public class MentorService implements UserDetailsService {
             if (request.getRequestState().equals(RequestState.ACCEPTED)) {
                 mentor.getAcceptedStudent().add(request.getStudent());
                 student.getAcceptedMentor().add(request.getMentor());
-            }else {
+            } else {
                 mentor.getAcceptedStudent().remove(request.getStudent());
                 student.getAcceptedMentor().remove(request.getMentor());
             }
@@ -190,6 +193,21 @@ public class MentorService implements UserDetailsService {
         return mentorRepository.findByEmail(email);
     }
 
-
+    public void sendComment(Long mentorId, Long postId, String content) {
+        Optional<Mentor> mentor = getMentorById(mentorId);
+        Optional<Post> post = postService.getPostById(postId);
+        if (mentor.isPresent() && post.isPresent()) {
+            Comment comment = new Comment();
+            comment.setMentor(mentor.get());
+            comment.setDate(LocalDate.now());
+            comment.setContent(content);
+            comment.setPost(post.get());
+            mentor.get().getComments().add(comment);
+            log.info("Комментарий передан на создание");
+            commentService.createComment(comment);
+        } else {
+            log.info("Не удалось создать комментарий");
+        }
+    }
 
 }

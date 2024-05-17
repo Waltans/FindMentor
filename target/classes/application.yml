@@ -3,19 +3,12 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:mydb
-    username: sa
-    password: password
-    driverClassName: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/codeBuddy
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+
   jpa:
-    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
-
-  h2:
-    console:
-      enabled: true
-
-
-  security:
-    user:
-      name: user
-      password: 12345
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect

@@ -4,13 +4,13 @@ import com.CodeBuddy.CodeBuddy.application.services.KeywordService;
 import com.CodeBuddy.CodeBuddy.application.services.MentorService;
 import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
+import com.CodeBuddy.CodeBuddy.extern.DTO.RequestDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.keywordDtos.GetKeywordsAndIdDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorAndKeywordsDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorDtoWithContact;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorDtoWithoutContact;
 import com.CodeBuddy.CodeBuddy.extern.DTO.mentorDtos.MentorUpdateInfoDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.CreateStudentDTO;
-import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.RequestDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.UpdateSecurityStudent;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.KeywordAssembler;
 import com.CodeBuddy.CodeBuddy.extern.assemblers.MentorAssembler;
@@ -29,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -55,10 +54,10 @@ public class MentorController {
     }
 
     @PostMapping()
-    public ResponseEntity<CreateStudentDTO> create(@RequestBody @Valid CreateStudentDTO dto){
+    public ResponseEntity<CreateStudentDTO> create(@RequestBody @Valid CreateStudentDTO dto) {
         Mentor mentor = Mentor.builder().firstName(dto.getFirstName()).lastName(dto.getLastName())
-                        .email(dto.getEmail()).password(dto.getPassword()).build();
-        if(dto.getPassword().equals(dto.getRepeatPassword())){
+                .email(dto.getEmail()).password(dto.getPassword()).build();
+        if (dto.getPassword().equals(dto.getRepeatPassword())) {
             mentorService.saveMentor(mentor);
             return new ResponseEntity<>(dto, HttpStatus.CREATED);
         }
@@ -66,7 +65,7 @@ public class MentorController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<MentorDtoWithoutContact> getMentor(@PathVariable Long id){
+    public ResponseEntity<MentorDtoWithoutContact> getMentor(@PathVariable Long id) {
         Optional<Mentor> optionalMentor = mentorService.getMentorById(id);
         if (optionalMentor.isPresent()) {
             Mentor mentor = optionalMentor.get();
@@ -88,9 +87,9 @@ public class MentorController {
 
     @PutMapping("accounts/settings")
     public ResponseEntity<Void> updateMentorInformation(@AuthenticationPrincipal UserDetails userDetails,
-                                                          @RequestBody MentorUpdateInfoDTO mentorDTO){
+                                                        @RequestBody MentorUpdateInfoDTO mentorDTO) {
         Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
-        if(optionalMentor.isPresent()){
+        if (optionalMentor.isPresent()) {
             mentorService.updateInformation(optionalMentor.get(), mentorDTO.getEmail(), mentorDTO.getTelegram(),
                     mentorDTO.getDescription(), mentorDTO.getKeywords());
             return ResponseEntity.ok().build();
@@ -130,23 +129,23 @@ public class MentorController {
     }
 
     @GetMapping
-    public ResponseEntity<MentorAndKeywordsDto> getAllMentor(){
+    public ResponseEntity<MentorAndKeywordsDto> getAllMentor() {
         List<Mentor> mentorList = mentorService.getAllMentors();
         return getMentorAndKeywordsDtoResponseEntity(mentorList);
     }
 
 
     @GetMapping("keywords")
-    public ResponseEntity<MentorAndKeywordsDto> getAllMentorsByKeywords(@RequestParam("keywordsId") List<Long> keywordsId){
+    public ResponseEntity<MentorAndKeywordsDto> getAllMentorsByKeywords(@RequestParam("keywordsId") List<Long> keywordsId) {
         List<Mentor> mentorList = mentorService.getMentorsByKeywords(keywordsId);
         return getMentorAndKeywordsDtoResponseEntity(mentorList);
     }
 
     @PutMapping("accounts/keywords")
     public ResponseEntity<?> changeKeywords(@AuthenticationPrincipal UserDetails userDetails,
-                                             @RequestParam("keywordId") List<Long> keywordsId){
+                                            @RequestParam("keywordId") List<Long> keywordsId) {
         Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
-        if(optionalMentor.isPresent()){
+        if (optionalMentor.isPresent()) {
             mentorService.changeKeywords(optionalMentor.get().getId(), keywordsId);
             return ResponseEntity.ok().build();
         }
@@ -154,21 +153,26 @@ public class MentorController {
     }
 
     @GetMapping("requests")
-    public ResponseEntity<List<RequestDTO>> getAllRequests(@AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<List<RequestDTO>> getAllRequests(@AuthenticationPrincipal UserDetails userDetails) {
         Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
-        return optionalMentor.map(mentor -> new ResponseEntity<>(mentor.getRequests().stream().map(requestAssembler::mapToRequestDTO).toList(), HttpStatus.OK)).orElseGet(() -> ResponseEntity.badRequest().build());
+
+        return optionalMentor.map(mentor -> {
+                    List<RequestDTO> list = mentor.getRequests().stream()
+                            .map(requestAssembler::mapToRequestDTO).toList();
+                    return new ResponseEntity<>(list, HttpStatus.OK);
+                })
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @PutMapping("requests/{requestId}")
     public ResponseEntity<?> respondToRequest(@AuthenticationPrincipal UserDetails userDetails
-            , @RequestParam("request") String stringRequestState, @PathVariable Long requestId){
+            , @RequestParam("request") String stringRequestState, @PathVariable Long requestId) {
         Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
-        if (optionalMentor.isPresent()){
+        if (optionalMentor.isPresent()) {
             RequestState requestState = RequestState.valueOf(stringRequestState);
             mentorService.answerToRequest(requestId, requestState);
             return new ResponseEntity<>(HttpStatus.OK);
-        }
-        else
+        } else
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
@@ -178,7 +182,4 @@ public class MentorController {
         MentorAndKeywordsDto mentorAndKeywordsDto = new MentorAndKeywordsDto(mentors, keywords);
         return new ResponseEntity<>(mentorAndKeywordsDto, HttpStatus.OK);
     }
-
-
-
 }

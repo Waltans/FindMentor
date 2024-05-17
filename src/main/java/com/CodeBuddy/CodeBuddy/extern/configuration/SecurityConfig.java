@@ -48,7 +48,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorizeHttp -> {
                     authorizeHttp.requestMatchers("/").permitAll();
-                    authorizeHttp.requestMatchers(HttpMethod.POST,"/mentors").anonymous();
+                    authorizeHttp.requestMatchers("/mentors").anonymous();
                     authorizeHttp.requestMatchers(HttpMethod.POST, "/students").anonymous();
                     authorizeHttp.requestMatchers("/students/**").hasAnyAuthority("ROLE_STUDENT");
                     authorizeHttp.requestMatchers("/mentors/**").hasAnyAuthority("ROLE_MENTOR");
@@ -62,7 +62,6 @@ public class SecurityConfig {
                 )
                 .build();
     }
-
 
     @Bean
     public AuthenticationProvider authenticationStudentProvider() {

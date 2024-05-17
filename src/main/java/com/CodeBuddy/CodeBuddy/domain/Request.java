@@ -14,6 +14,7 @@ public class Request {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private RequestState requestState;
 
     @ManyToOne

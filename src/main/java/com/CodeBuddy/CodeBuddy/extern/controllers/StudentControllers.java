@@ -6,9 +6,9 @@ import com.CodeBuddy.CodeBuddy.application.services.RequestService;
 import com.CodeBuddy.CodeBuddy.application.services.StudentService;
 import com.CodeBuddy.CodeBuddy.domain.Post;
 import com.CodeBuddy.CodeBuddy.domain.Request;
-import com.CodeBuddy.CodeBuddy.domain.RequestState;
 import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
+import com.CodeBuddy.CodeBuddy.extern.DTO.RequestDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.postDtos.CreatePostDTO;
 import com.CodeBuddy.CodeBuddy.extern.DTO.postDtos.CreatedPostDto;
 import com.CodeBuddy.CodeBuddy.extern.DTO.studentDtos.*;
@@ -83,7 +83,8 @@ public class StudentControllers {
 
 
     @PutMapping("accounts/settings")
-    public ResponseEntity<Void> updateStudentInformation(@AuthenticationPrincipal UserDetails userDetails, @Valid @RequestBody StudentUpdateInfoDTO updateInfoDTO) {
+    public ResponseEntity<Void> updateStudentInformation(@AuthenticationPrincipal UserDetails userDetails,
+                                                         @Valid @RequestBody StudentUpdateInfoDTO updateInfoDTO) {
         if (updateInfoDTO == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -99,7 +100,8 @@ public class StudentControllers {
     }
 
     @PutMapping("accounts/photo")
-    public ResponseEntity<Void> updatePhoto(@AuthenticationPrincipal UserDetails userDetails, @RequestParam("image") MultipartFile file) throws IOException {
+    public ResponseEntity<Void> updatePhoto(@AuthenticationPrincipal UserDetails userDetails,
+                                            @RequestParam("image") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -129,7 +131,8 @@ public class StudentControllers {
 
 
     @PostMapping("requests/mentors/{mentorId}")
-    public ResponseEntity<RequestDTO> sendRequest(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long mentorId,
+    public ResponseEntity<RequestDTO> sendRequest(@AuthenticationPrincipal UserDetails userDetails,
+                                                  @PathVariable Long mentorId,
                                                   @Valid @RequestBody StudentCreateRequest request) {
         Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
@@ -153,6 +156,7 @@ public class StudentControllers {
         if (student.isPresent()) {
             if (postDTO.getDescription() != null) {
                 List<File> fileList = new ArrayList<>(3);
+                log.info(String.valueOf(postDTO.getFiles().size()));
                 if (postDTO.getFiles() != null && postDTO.getFiles().size() <= 3) {
                     for (MultipartFile file : postDTO.getFiles()) {
                         File tempFile = File.createTempFile("temp", null);
@@ -188,14 +192,13 @@ public class StudentControllers {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("{id}/mentor/{mentorId}")
-    public ResponseEntity<?> getMentor(@PathVariable Long id, @PathVariable Long mentorId) {
-        Optional<Student> student = studentService.getStudentById(id);
+    @GetMapping("/mentors/{mentorId}")
+    public ResponseEntity<?> getMentor(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long mentorId) {
+        Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
         if (student.isPresent() && mentor.isPresent()) {
             Mentor mentorDto = mentor.get();
-            RequestState request = requestService.getRequestByMentorAndStudent(mentorId, id);
-            if (!request.equals(RequestState.ACCEPTED)) {
+            if (!mentor.get().getAcceptedStudent().contains(student.get())) {
                 return new ResponseEntity<>(mentorAssembler.convertToDtoWithoutContact(mentorDto), HttpStatus.OK);
             }
             return new ResponseEntity<>(mentorAssembler.convertToDtoWithContact(mentorDto), HttpStatus.OK);

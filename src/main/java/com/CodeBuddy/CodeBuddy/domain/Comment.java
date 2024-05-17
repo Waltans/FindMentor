@@ -1,5 +1,6 @@
 package com.CodeBuddy.CodeBuddy.domain;
 
+import com.CodeBuddy.CodeBuddy.domain.Users.Mentor;
 import com.CodeBuddy.CodeBuddy.domain.Users.Student;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,6 +22,10 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "student_id")
     private Student student;
+
+    @ManyToOne
+    @JoinColumn(name = "mentor_id")
+    private Mentor mentor;
 
     @ManyToOne
     @JoinColumn(name = "comment_id")

@@ -1,5 +1,6 @@
 package com.CodeBuddy.CodeBuddy.domain.Users;
 
+import com.CodeBuddy.CodeBuddy.domain.Comment;
 import com.CodeBuddy.CodeBuddy.domain.Keyword;
 import com.CodeBuddy.CodeBuddy.domain.Request;
 import jakarta.persistence.*;
@@ -69,6 +70,9 @@ public class Mentor implements UserDetails {
     )
     private List<Student> acceptedStudent = new ArrayList<>();
 
+    @OneToMany(mappedBy = "mentor",fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     /**
      * Ссылка на фотографию
      */
@@ -76,7 +80,7 @@ public class Mentor implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return AuthorityUtils.createAuthorityList( "ROLE_MENTOR");
+        return AuthorityUtils.createAuthorityList("ROLE_MENTOR");
     }
 
     @Override
