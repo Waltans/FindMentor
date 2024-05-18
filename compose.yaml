@@ -1,0 +1,28 @@
+services:
+  codebuddy-app:
+    container_name: codeBuddy-app
+    depends_on:
+      - codeBuddy-db
+    ports:
+      - 8050:8050
+    build:
+      context: .
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: admin
+      DB_NAME: codeBuddy
+      DB_HOST: codeBuddy-db
+      DB_PORT: 5432
+      APP_PORT: 8050
+    restart: unless-stopped
+
+  codeBuddy-db:
+    container_name: codeBuddy_db
+    image: 'postgres:16.3-alpine'
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=codeBuddy
+    restart: unless-stopped
