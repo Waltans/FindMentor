@@ -13,6 +13,7 @@ import com.codeBuddy.codeBuddy.extern.Dto.postDtos.CreatePostDTO;
 import com.codeBuddy.codeBuddy.extern.Dto.postDtos.CreatedPostDto;
 import com.codeBuddy.codeBuddy.extern.Dto.studentDtos.*;
 import com.codeBuddy.codeBuddy.extern.assemblers.MentorAssembler;
+import com.codeBuddy.codeBuddy.extern.assemblers.RequestAssembler;
 import com.codeBuddy.codeBuddy.extern.assemblers.StudentAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class StudentControllers {
     private final RequestService requestService;
     private final StudentAssembler assembler;
     private final MentorAssembler mentorAssembler;
+    private final RequestAssembler requestAssembler;
 
     @PostMapping
     public ResponseEntity<CreateStudentDTO> createStudent(@Valid @RequestBody CreateStudentDTO studentDTO) {
@@ -204,6 +206,18 @@ public class StudentControllers {
             return new ResponseEntity<>(mentorAssembler.convertToDtoWithContact(mentorDto), HttpStatus.OK);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/requests")
+    public ResponseEntity<List<RequestDTO>> getRequests(@AuthenticationPrincipal UserDetails userDetails) {
+        Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
+
+        return student.map(mentor -> {
+                    List<RequestDTO> list = mentor.getRequests().stream()
+                            .map(requestAssembler::mapToRequestDTO).toList();
+                    return new ResponseEntity<>(list, HttpStatus.OK);
+                })
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 }
 
