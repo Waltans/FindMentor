@@ -28,6 +28,6 @@ public class Comment {
     private Mentor mentor;
 
     @ManyToOne
-    @JoinColumn(name = "comment_id")
+    @JoinColumn(name = "post_id")
     private Post post;
 }

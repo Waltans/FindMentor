@@ -158,15 +158,16 @@ public class StudentControllers {
         if (student.isPresent()) {
             if (postDTO.getDescription() != null) {
                 List<File> fileList = new ArrayList<>(3);
-                log.info(String.valueOf(postDTO.getFiles().size()));
-                if (postDTO.getFiles() != null && postDTO.getFiles().size() <= 3) {
-                    for (MultipartFile file : postDTO.getFiles()) {
-                        File tempFile = File.createTempFile("temp", null);
-                        file.transferTo(tempFile);
-                        fileList.add(tempFile);
-                    }
-                } else {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Количество файлов должно быть не более 3");
+                if (postDTO.getFiles() != null) {
+                    if (postDTO.getFiles().size() <= 3) {
+                        for (MultipartFile file : postDTO.getFiles()) {
+                            File tempFile = File.createTempFile("temp", null);
+                            file.transferTo(tempFile);
+                            fileList.add(tempFile);
+                        }
+                    } else
+                        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body("Количество фотографий должно быть меньше 3");
                 }
                 Post post = studentService.createPost(student.get().getId(), postDTO.getDescription(), fileList);
                 CreatedPostDto createPostDTO = CreatedPostDto.builder()
