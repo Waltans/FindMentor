@@ -170,23 +170,6 @@ public class StudentService implements UserDetailsService {
         studentRepository.save(student);
     }
 
-    public void sendComment(Long studentId, Long postId, String content) {
-        Optional<Student> student = getStudentById(studentId);
-        Optional<Post> post = postService.getPostById(postId);
-        if (student.isPresent() && post.isPresent()) {
-            Comment comment = new Comment();
-            comment.setStudent(student.get());
-            comment.setDate(LocalDateTime.now());
-            comment.setContent(content);
-            comment.setPost(post.get());
-            student.get().getComments().add(comment);
-            log.info("Комментарий передан на создание");
-            commentService.createComment(comment);
-        } else {
-            log.info("Не удалось создать комментарий");
-        }
-    }
-
     /**
      * Метод для отмены запроса
      *
@@ -207,6 +190,7 @@ public class StudentService implements UserDetailsService {
         studentRepository.save(student);
         log.info("Пользователь c id={} изменил пароль и почту", student.getId());
     }
+
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

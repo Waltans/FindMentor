@@ -53,12 +53,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorizeHttp -> {
                     authorizeHttp.requestMatchers("/").permitAll();
+                    authorizeHttp.requestMatchers("comments/").permitAll();
                     authorizeHttp.requestMatchers("/posts").permitAll();
+                    authorizeHttp.requestMatchers(HttpMethod.POST, "/students").anonymous();
                     authorizeHttp.requestMatchers("/posts/**").permitAll();
                     authorizeHttp.requestMatchers("/mentors").anonymous();
                     authorizeHttp.requestMatchers("/students/{id}").authenticated();
                     authorizeHttp.requestMatchers("/mentors/{id}").authenticated();
-                    authorizeHttp.requestMatchers(HttpMethod.POST, "/students").anonymous();
                     authorizeHttp.requestMatchers("/students/**").hasAnyAuthority("ROLE_STUDENT");
                     authorizeHttp.requestMatchers("/mentors/**").hasAnyAuthority("ROLE_MENTOR");
                     // пока не создали сущность админа
