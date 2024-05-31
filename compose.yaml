@@ -31,5 +31,5 @@ services:
     build:
       context: ../CodeBuddyFrontend
     ports:
-      - "3000:5173"
+      - "80:4173"
     restart: unless-stopped
