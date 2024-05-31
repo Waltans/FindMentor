@@ -87,13 +87,12 @@ public class MentorService implements UserDetailsService {
      * @param newEmail    новый email
      * @param newTelegram новый telegram
      * @param description новое описание
-     * @param keywordsId  список новых ключевых слов
      */
-    public void updateInformation(Mentor mentor, String newEmail, String newTelegram, String description, List<Long> keywordsId) {
+    public void updateInformation(Mentor mentor, String newEmail, String newTelegram, String description, List<String> keywordsName) {
         mentor.setEmail(newEmail);
         mentor.setTelegram(newTelegram);
         mentor.setDescription(description);
-        mentor.setKeywords(keywordService.getAllKeywordsById(keywordsId));
+        mentor.setKeywords(keywordService.getAllKeywordsByName(keywordsName));
         mentorRepository.save(mentor);
         log.info("Данные ментора с id={} изменилась ", mentor.getId());
     }
@@ -117,11 +116,10 @@ public class MentorService implements UserDetailsService {
      * Метод удаления ключевого слова
      *
      * @param mentorId   идентификатор ментора
-     * @param keywordsId идентификаторы ключевых слов
      */
-    public void changeKeywords(Long mentorId, List<Long> keywordsId) {
+    public void changeKeywords(Long mentorId, List<String> keywordsName) {
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);
-        List<Keyword> keywords = keywordService.getAllKeywordsById(keywordsId);
+        List<Keyword> keywords = keywordService.getAllKeywordsByName(keywordsName);
         if (mentorOptional.isPresent()) {
             Mentor mentor = mentorOptional.get();
             mentor.setKeywords(keywords);
@@ -152,11 +150,10 @@ public class MentorService implements UserDetailsService {
     /**
      * Метод получения менторов с определенными ключевыми словами
      *
-     * @param keywordId идентификатор ключевого слова
      * @return Страница с менторами
      */
-    public List<Mentor> getMentorsByKeywords(List<Long> keywordId) {
-        List<Keyword> keywords = keywordService.getAllKeywordsById(keywordId);
+    public List<Mentor> getMentorsByKeywords(List<String> keywordName) {
+        List<Keyword> keywords = keywordService.getAllKeywordsByName(keywordName);
         List<Mentor> mentorPage = mentorRepository.getMentorsByKeywordsIn(keywords);
         log.info("Получен список менторов с определенными ключевыми словами");
         return mentorPage;

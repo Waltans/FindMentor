@@ -18,5 +18,5 @@ public class MentorUpdateInfoDTO {
 
     private String description;
 
-    private List<Long> keywords = new ArrayList<>();
+    private List<String> keywords = new ArrayList<>();
 }

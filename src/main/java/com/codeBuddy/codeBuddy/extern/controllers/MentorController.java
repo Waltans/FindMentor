@@ -136,17 +136,17 @@ public class MentorController {
 
 
     @GetMapping("keywords")
-    public ResponseEntity<MentorAndKeywordsDto> getAllMentorsByKeywords(@RequestParam("keywordsId") List<Long> keywordsId) {
-        List<Mentor> mentorList = mentorService.getMentorsByKeywords(keywordsId);
+    public ResponseEntity<MentorAndKeywordsDto> getAllMentorsByKeywords(@RequestParam("keywordsId") List<String> keywords) {
+        List<Mentor> mentorList = mentorService.getMentorsByKeywords(keywords);
         return getMentorAndKeywordsDtoResponseEntity(mentorList);
     }
 
     @PutMapping("accounts/keywords")
     public ResponseEntity<?> changeKeywords(@AuthenticationPrincipal UserDetails userDetails,
-                                            @RequestParam("keywordId") List<Long> keywordsId) {
+                                            @RequestParam("keyword") List<String> keywords) {
         Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
         if (optionalMentor.isPresent()) {
-            mentorService.changeKeywords(optionalMentor.get().getId(), keywordsId);
+            mentorService.changeKeywords(optionalMentor.get().getId(), keywords);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();

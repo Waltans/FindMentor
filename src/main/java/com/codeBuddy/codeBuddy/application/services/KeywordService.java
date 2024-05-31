@@ -49,8 +49,8 @@ public class KeywordService {
         return keywords;
     }
 
-    public List<Keyword> getAllKeywordsById(List<Long> id){
-        List<Keyword> keywords = keywordRepository.findAllByIdIn(id);
+    public List<Keyword> getAllKeywordsByName(List<String> keywordsName){
+        List<Keyword> keywords = keywordRepository.findAllByKeywordIn(keywordsName);
         log.info("Получен список ключевых слов по определенным id");
         return keywords;
     }
