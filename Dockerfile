@@ -1,5 +1,5 @@
 FROM openjdk:21
-
+WORKDIR /app
 ARG JAR_FILE=target/CodeBuddy-0.0.1-SNAPSHOT.jar
 
 ENV DB_USERNAME=postgres

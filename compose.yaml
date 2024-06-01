@@ -31,5 +31,12 @@ services:
     build:
       context: ../CodeBuddyFrontend
     ports:
-      - "80:4173"
+      - "3020:4173"
+    environment:
+      VITE_PORT: 8000
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2048M
     restart: unless-stopped
