@@ -30,7 +30,9 @@ public class PostController {
         Page<Post> posts = postRepository.findAll(pageable);
         Page<PostDTO> postDto = posts.map(post ->
                 PostDTO.builder()
-                        .comments(post.getComments().stream().map(commentAssembler::toModel).limit(3).toList())
+                        .id(post.getId())
+                        .comments(post.getComments().stream().map(commentAssembler::toModel)
+                                .limit(3).toList())
                         .countOfLikes(post.getCountOfLikes())
                         .description(post.getDescription())
                         .urlPhoto(post.getUrlPhoto())
@@ -45,7 +47,9 @@ public class PostController {
     public ResponseEntity<PostDTO> getPostById(@PathVariable Long id) {
         return postService.getPostById(id).map(post -> {
                     PostDTO postDto = PostDTO.builder()
-                            .comments(post.getComments().stream().map(commentAssembler::toModel).limit(3).toList())
+                            .id(post.getId())
+                            .comments(post.getComments().stream().map(commentAssembler::toModel)
+                                    .limit(3).toList())
                             .countOfLikes(post.getCountOfLikes())
                             .description(post.getDescription())
                             .urlPhoto(post.getUrlPhoto())

@@ -154,6 +154,7 @@ public class StudentControllers {
     @PostMapping("posts")
     public ResponseEntity<?> createPost(@AuthenticationPrincipal UserDetails userDetails,
                                         @Valid @ModelAttribute CreatePostDTO postDTO) throws IOException {
+
         Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         if (student.isPresent()) {
             if (postDTO.getDescription() != null) {
@@ -169,7 +170,8 @@ public class StudentControllers {
                         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                                 .body("Количество фотографий должно быть меньше 3");
                 }
-                Post post = studentService.createPost(student.get().getId(), postDTO.getDescription(), fileList);
+                Post post = studentService.createPost(student.get().getId(),
+                        postDTO.getDescription(), fileList);
                 CreatedPostDto createPostDTO = CreatedPostDto.builder()
                         .creatorId(student.get().getId())
                         .description(postDTO.getDescription())

@@ -10,6 +10,8 @@ import java.util.List;
 @Builder
 public class PostDTO {
 
+    private Long id;
+
     private String description;
 
     private Integer countOfLikes = 0;
