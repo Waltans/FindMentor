@@ -29,8 +29,13 @@ public class ChatController {
     private final CommentService commentService;
 
     @GetMapping("posts/{postId}")
-    public ResponseEntity<Page<CommentDTO>> getCommentsByPost(@PathVariable Long postId, @RequestParam Integer page) {
-        Pageable pageable = PageRequest.of(page, 5);
+    public ResponseEntity<Page<CommentDTO>> getCommentsByPost(@PathVariable Long postId,
+                                                              @RequestParam Integer pages) {
+
+        if (pages == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Pageable pageable = PageRequest.of(pages, 5);
         Optional<Post> postById = postService.getPostById(postId);
         if (postById.isPresent()) {
             Page<CommentDTO> commentDTOS = commentService.getCommentsByPost(postId, pageable).map(comment ->
@@ -49,12 +54,15 @@ public class ChatController {
     }
 
     @PutMapping("posts/{postId}")
-    public ResponseEntity<Void> sendComment(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long postId,
+    public ResponseEntity<Void> sendComment(@AuthenticationPrincipal UserDetails userDetails,
+                                            @PathVariable Long postId,
                                             @RequestBody NewCommentDTO commentDTO) {
-        postService.getPostById(postId).map(post -> {
+
+        Optional<Post> postById = postService.getPostById(postId);
+        if (postById.isPresent()) {
             commentService.sendComment(userDetails, postId, commentDTO.getComment());
             return ResponseEntity.ok().build();
-        });
-        return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.noContent().build();
     }
 }

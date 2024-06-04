@@ -3,7 +3,6 @@ package com.codeBuddy.codeBuddy.application.services;
 
 import com.codeBuddy.codeBuddy.application.repository.MentorRepository;
 import com.codeBuddy.codeBuddy.application.repository.StudentRepository;
-import com.codeBuddy.codeBuddy.domain.Comment;
 import com.codeBuddy.codeBuddy.domain.Post;
 import com.codeBuddy.codeBuddy.domain.Request;
 import com.codeBuddy.codeBuddy.domain.RequestState;
@@ -18,7 +17,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -93,7 +91,7 @@ public class StudentService implements UserDetailsService {
         if (newTelegram != null) student.setTelegram(newTelegram);
         if (description != null) student.setDescription(description);
         studentRepository.save(student);
-        log.info("Данные пользователя с id={} изменилась ", student.getId());
+        log.info("Данные пользователя с id = {} изменилась ", student.getId());
     }
 
     /**

@@ -89,9 +89,9 @@ public class MentorService implements UserDetailsService {
      * @param description новое описание
      */
     public void updateInformation(Mentor mentor, String newEmail, String newTelegram, String description, List<String> keywordsName) {
-        mentor.setEmail(newEmail);
-        mentor.setTelegram(newTelegram);
-        mentor.setDescription(description);
+        if (newEmail != null) mentor.setEmail(newEmail);
+        if (newTelegram != null) mentor.setTelegram(newTelegram);
+        if (description != null) mentor.setDescription(description);
         mentor.setKeywords(keywordService.getAllKeywordsByName(keywordsName));
         mentorRepository.save(mentor);
         log.info("Данные ментора с id={} изменилась ", mentor.getId());
@@ -115,7 +115,7 @@ public class MentorService implements UserDetailsService {
     /**
      * Метод удаления ключевого слова
      *
-     * @param mentorId   идентификатор ментора
+     * @param mentorId идентификатор ментора
      */
     public void changeKeywords(Long mentorId, List<String> keywordsName) {
         Optional<Mentor> mentorOptional = mentorRepository.findById(mentorId);

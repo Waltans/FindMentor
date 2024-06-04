@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -85,23 +86,22 @@ public class CommentService {
         Optional<Post> post = postService.getPostById(postId);
         if (post.isPresent()) {
             Comment comment = new Comment();
-            if (userDetails.getAuthorities().equals("ROLE_MENTOR")) {
+            log.info(String.valueOf(userDetails.getAuthorities().stream().findFirst().get()));
+            if (userDetails.getAuthorities().stream().findFirst().get().toString().equals("ROLE_MENTOR")) {
                 Mentor mentor = mentorService.findMentorByEmail(userDetails.getUsername()).get();
                 comment.setMentor(mentor);
                 mentor.getComments().add(comment);
-                mentorRepository.save(mentor);
-            } else {
+            } else if (userDetails.getAuthorities().stream().findFirst().get().toString().equals("ROLE_STUDENT")){
                 Student student = studentService.findStudentByEmail(userDetails.getUsername()).get();
                 comment.setStudent(student);
                 student.getComments().add(comment);
-                studentRepository.save(student);
             }
             comment.setDate(LocalDateTime.now());
             comment.setContent(content);
             comment.setPost(post.get());
 
             log.info("Комментарий передан на создание");
-            this.createComment(comment);
+            createComment(comment);
         } else {
             log.info("Не удалось создать комментарий");
         }

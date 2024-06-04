@@ -19,7 +19,8 @@ public class Post {
 
     private String description;
 
-    private Integer countOfLikes;
+    @Setter(AccessLevel.NONE)
+    private Integer countOfLikes = 0;
 
     /**
      * Дата создания поста
@@ -42,5 +43,9 @@ public class Post {
             this.urlPhoto.removeAll(urlPhoto);
             this.urlPhoto.addAll(urlPhoto);
         }
+    }
+
+    public void setCountOfLikes() {
+        this.countOfLikes++;
     }
 }

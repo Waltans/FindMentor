@@ -172,13 +172,13 @@ public class StudentControllers {
                 }
                 Post post = studentService.createPost(student.get().getId(),
                         postDTO.getDescription(), fileList);
-                CreatedPostDto createPostDTO = CreatedPostDto.builder()
+                CreatedPostDto createdPostDTO = CreatedPostDto.builder()
                         .creatorId(student.get().getId())
                         .description(postDTO.getDescription())
                         .postId(post.getId())
                         .urlsPhoto(post.getUrlPhoto())
                         .build();
-                return new ResponseEntity<>(createPostDTO, HttpStatus.CREATED);
+                return new ResponseEntity<>(createdPostDTO, HttpStatus.CREATED);
             }
             return ResponseEntity.badRequest().build();
         }
@@ -187,7 +187,8 @@ public class StudentControllers {
 
 
     @DeleteMapping("requests/{requestId}")
-    public ResponseEntity<Void> cancelRequest(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long requestId) {
+    public ResponseEntity<Void> cancelRequest(@AuthenticationPrincipal UserDetails userDetails,
+                                              @PathVariable Long requestId) {
         Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         Optional<Request> request = requestService.getRequestById(requestId);
         if (student.isPresent() && request.isPresent()) {
@@ -198,7 +199,8 @@ public class StudentControllers {
     }
 
     @GetMapping("/mentors/{mentorId}")
-    public ResponseEntity<?> getMentor(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long mentorId) {
+    public ResponseEntity<?> getMentor(@AuthenticationPrincipal UserDetails userDetails,
+                                       @PathVariable Long mentorId) {
         Optional<Student> student = studentService.findStudentByEmail(userDetails.getUsername());
         Optional<Mentor> mentor = mentorService.getMentorById(mentorId);
         if (student.isPresent() && mentor.isPresent()) {

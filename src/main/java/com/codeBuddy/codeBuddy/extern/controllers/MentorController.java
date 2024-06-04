@@ -2,8 +2,10 @@ package com.codeBuddy.codeBuddy.extern.controllers;
 
 import com.codeBuddy.codeBuddy.application.services.KeywordService;
 import com.codeBuddy.codeBuddy.application.services.MentorService;
+import com.codeBuddy.codeBuddy.application.services.StudentService;
 import com.codeBuddy.codeBuddy.domain.RequestState;
 import com.codeBuddy.codeBuddy.domain.Users.Mentor;
+import com.codeBuddy.codeBuddy.domain.Users.Student;
 import com.codeBuddy.codeBuddy.extern.Dto.RequestDTO;
 import com.codeBuddy.codeBuddy.extern.Dto.keywordDtos.GetKeywordsAndIdDto;
 import com.codeBuddy.codeBuddy.extern.Dto.mentorDtos.MentorAndKeywordsDto;
@@ -15,6 +17,7 @@ import com.codeBuddy.codeBuddy.extern.Dto.studentDtos.UpdateSecurityStudent;
 import com.codeBuddy.codeBuddy.extern.assemblers.KeywordAssembler;
 import com.codeBuddy.codeBuddy.extern.assemblers.MentorAssembler;
 import com.codeBuddy.codeBuddy.extern.assemblers.RequestAssembler;
+import com.codeBuddy.codeBuddy.extern.assemblers.StudentAssembler;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,19 +41,23 @@ public class MentorController {
 
     private final MentorService mentorService;
     private final MentorAssembler mentorAssembler;
+    private final StudentService studentService;
     private final KeywordAssembler keywordAssembler;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final KeywordService keywordService;
     private final RequestAssembler requestAssembler;
+    private final StudentAssembler studentAssembler;
 
     @Autowired
-    public MentorController(MentorService mentorService, MentorAssembler mentorAssembler, KeywordAssembler keywordAssembler, BCryptPasswordEncoder bCryptPasswordEncoder, KeywordService keywordService, RequestAssembler requestAssembler) {
+    public MentorController(MentorService mentorService, MentorAssembler mentorAssembler, StudentService studentService, KeywordAssembler keywordAssembler, BCryptPasswordEncoder bCryptPasswordEncoder, KeywordService keywordService, RequestAssembler requestAssembler, StudentAssembler studentAssembler) {
         this.mentorService = mentorService;
         this.mentorAssembler = mentorAssembler;
+        this.studentService = studentService;
         this.keywordAssembler = keywordAssembler;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.keywordService = keywordService;
         this.requestAssembler = requestAssembler;
+        this.studentAssembler = studentAssembler;
     }
 
     @PostMapping()
@@ -72,6 +79,21 @@ public class MentorController {
             return new ResponseEntity<>(mentorAssembler.convertToDtoWithoutContact(mentor), HttpStatus.FOUND);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("students/{id}")
+    public ResponseEntity<?> getStudent(@AuthenticationPrincipal UserDetails userDetails,
+                                        @PathVariable("id") Long studentId) {
+        Optional<Mentor> optionalMentor = mentorService.findMentorByEmail(userDetails.getUsername());
+        Optional<Student> student = studentService.getStudentById(studentId);
+        if (student.isEmpty() || optionalMentor.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        Student studentDto = student.get();
+        if (optionalMentor.get().getAcceptedStudent().contains(studentDto)) {
+            return new ResponseEntity<>(studentAssembler.convertToDtoWithContact(studentDto), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(studentAssembler.convertToDtoWithoutContact(studentDto), HttpStatus.OK);
     }
 
     @GetMapping("accounts")

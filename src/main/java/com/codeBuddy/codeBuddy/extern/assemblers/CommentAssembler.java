@@ -14,7 +14,7 @@ public class CommentAssembler {
             if (comment.getMentor() != null) {
                 commentDto.setMentor(comment.getMentor().getId());
                 commentDto.setPhotoUrl(comment.getMentor().getUrlPhoto());
-            } else {
+            } else if (comment.getStudent() != null) {
                 commentDto.setStudent(comment.getStudent().getId());
                 commentDto.setPhotoUrl(comment.getStudent().getPhotoUrl());
             }

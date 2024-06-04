@@ -9,10 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("posts")
@@ -60,4 +59,16 @@ public class PostController {
                 }
         ).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> likePost(@PathVariable Long id) {
+        Optional<Post> post = postService.getPostById(id);
+        if (post.isPresent()) {
+            post.get().setCountOfLikes();
+            postRepository.save(post.get());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.noContent().build();
+    }
 }
+
